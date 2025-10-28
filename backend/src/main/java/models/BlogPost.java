@@ -1,7 +1,5 @@
 package models;
 
-import org.springframework.security.core.parameters.P;
-
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -44,39 +42,39 @@ public class BlogPost {
         return this.comments;
     }
 
-    public Result editContent(String content){
+    public ResultError editContent(String content){
         if(content.trim().equals("")){
-            return new Result(false, "Content cannot be empty");
+            return new ResultError(false, "Content cannot be empty");
         }
         this.content = content;
-        return new Result(true, "Successfully edited content");
+        return new ResultError(true, "Successfully edited content");
     }
 
-    public Result addComment(Comments comment){
+    public ResultError addComment(Comments comment){
         //securitate
         BlogPost post = null;
         //implementare din db
         if(post == null){
-            return new Result(false,"Post doesn't exist");
+            return new ResultError(false,"Post doesn't exist");
         }
         if(comment==null || comment.getContent().isEmpty()){
-            return new Result(false,"Comment cannot be empty");
+            return new ResultError(false,"Comment cannot be empty");
         }
         comments.add(comment);
-        return new Result(true, "");
+        return new ResultError(true, "");
     }
 
-    public Result addLike(User author){
+    public ResultError addLike(User author){
         BlogPost post = null;
         if(post == null){
-            return new Result(false,"Post doesn't exist");
+            return new ResultError(false,"Post doesn't exist");
         }
         if(likedBy.contains(author.getId())){
             likedBy.remove(author.getId());
-            return new Result(true, "minus");
+            return new ResultError(true, "minus");
         }else{
             likedBy.add(author.getId());
-            return new Result(true, "plus");
+            return new ResultError(true, "plus");
         }
     }
 }
