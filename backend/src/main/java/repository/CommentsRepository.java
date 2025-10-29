@@ -7,8 +7,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CommentsRepository extends JpaRepository<Comments, Integer> {
-
-    public BlogPost findByBlogPost(BlogPost blogPost){
-        //db
-    }
 }

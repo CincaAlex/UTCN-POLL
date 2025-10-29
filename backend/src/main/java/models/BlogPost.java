@@ -1,80 +1,80 @@
 package models;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+@Entity
+@Table(name = "blog_posts")
 public class BlogPost {
-    private int id;
-    private User author;
-    private String content;
-    private LocalDateTime createdAt;
-    private List<Comments> comments;
-    private Set<Integer> likedBy;
 
-    public BlogPost(int id, User author, String content, List<Comments> comments) {
-        this.id = id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comments> comments = new ArrayList<>();
+
+    // În loc de set<Integer>, salvăm userii care au dat like
+    @ElementCollection
+    @CollectionTable(name = "post_likes", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "user_id")
+    private Set<Integer> likedBy = new HashSet<>();
+
+    public BlogPost() {} // obligatoriu pentru JPA
+
+    public BlogPost(User author, String content) {
         this.author = author;
         this.content = content;
         this.createdAt = LocalDateTime.now();
-        this.comments = comments;
-        this.likedBy = new HashSet<>();
     }
 
-    public User getAuthor(){
-        return this.author;
-    }
+    // --- Getteri și setteri ---
+    public int getId() { return id; }
 
-    public int getLikes(){
-        return this.likedBy.size();
-    }
+    public User getAuthor() { return author; }
 
-    public String getContent(){
-        return this.content;
-    }
+    public String getContent() { return content; }
 
-    public LocalDateTime getCreatedAt(){
-        return this.createdAt;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 
-    public List<Comments> getComments(){
-        return this.comments;
-    }
+    public List<Comments> getComments() { return comments; }
 
-    public ResultError editContent(String content){
-        if(content.trim().equals("")){
+    public int getLikes() { return likedBy.size(); }
+
+    public ResultError editContent(String content) {
+        if (content.trim().isEmpty()) {
             return new ResultError(false, "Content cannot be empty");
         }
         this.content = content;
-        return new ResultError(true, "Successfully edited content");
+        return new ResultError(true, "Content updated");
     }
 
-    public ResultError addComment(Comments comment){
-        //securitate
-        BlogPost post = null;
-        //implementare din db
-        if(post == null){
-            return new ResultError(false,"Post doesn't exist");
-        }
-        if(comment==null || comment.getContent().isEmpty()){
-            return new ResultError(false,"Comment cannot be empty");
+    public ResultError addComment(Comments comment) {
+        if (comment == null || comment.getContent().isEmpty()) {
+            return new ResultError(false, "Comment cannot be empty");
         }
         comments.add(comment);
-        return new ResultError(true, "");
+        comment.setPost(this);
+        return new ResultError(true, "Comment added");
     }
 
-    public ResultError addLike(User author){
-        BlogPost post = null;
-        if(post == null){
-            return new ResultError(false,"Post doesn't exist");
-        }
-        if(likedBy.contains(author.getId())){
+    public ResultError toggleLike(User author) {
+        if (likedBy.contains(author.getId())) {
             likedBy.remove(author.getId());
-            return new ResultError(true, "minus");
-        }else{
+            return new ResultError(true, "Like removed");
+        } else {
             likedBy.add(author.getId());
-            return new ResultError(true, "plus");
+            return new ResultError(true, "Like added");
         }
     }
 }

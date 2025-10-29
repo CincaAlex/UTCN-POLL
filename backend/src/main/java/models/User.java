@@ -1,64 +1,37 @@
 package models;
 
-import com.github.windpapi4j.InitializationFailedException;
-import com.github.windpapi4j.WinAPICallFailedException;
-import com.github.windpapi4j.WinDPAPI;
-import com.github.windpapi4j.WinDPAPI.CryptProtectFlag;
+import jakarta.persistence.*;
 
-import java.util.Base64;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-
+@Entity
+@Table(name = "users")
 public class User {
 
-    private static WinDPAPI winDPAPI;
-
-    static {
-        try {
-            winDPAPI = WinDPAPI.newInstance(CryptProtectFlag.CRYPTPROTECT_UI_FORBIDDEN);
-        } catch (InitializationFailedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String name;
-    private String email;
-    private byte[] password;
 
-    public User(int id, String name, String email, String password) throws WinAPICallFailedException {
-        this.id = id;
+    @Column(nullable = false)
+    private String name;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    public User() {}
+
+    public User(String name, String email, String password) {
         this.name = name;
         this.email = email;
-        this.password = winDPAPI.protectData(password.getBytes(UTF_8));;
-
-    }
-
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public byte[] getPassword() {
-        return password;
-    }
-
-    public void setPassword(byte[] password) {
         this.password = password;
     }
 
-
-
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }
