@@ -6,7 +6,6 @@ import java.util.List;
 
 public class Member extends User {
 
-    private long points;
     private List<Integer> achivementList;
     private List<Integer> voteList;
 
@@ -14,14 +13,6 @@ public class Member extends User {
 
     public Member(int id, String name, String email, String password) throws WinAPICallFailedException {
         super(name, email, password);
-    }
-
-    public long getPoints() {
-        return points;
-    }
-
-    public void setPoints(long points) {
-        this.points = points;
     }
 
     public List<Integer> getAchivementList() {

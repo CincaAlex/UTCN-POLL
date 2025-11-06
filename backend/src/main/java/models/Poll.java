@@ -12,15 +12,24 @@ public class Poll {
     private String description;
     private LocalDateTime date;
     private LocalDateTime endDate;
-    private List<Integer> options;
+    private List<Vote> options;
+    private int creatorId;
 
-    public Poll(int id, String title, String description, LocalDateTime date, LocalDateTime endDate, List<Integer> options) {
+    public Poll(int id, String title, String description, LocalDateTime date, LocalDateTime endDate, List<Vote> options) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.date = date;
         this.endDate = endDate;
         this.options = options;
+    }
+
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(endDate);
+    }
+
+    public void setCreatorId(int creatorId) {
+        this.creatorId = creatorId;
     }
 
     public int getId() {
@@ -63,11 +72,11 @@ public class Poll {
         this.endDate = endDate;
     }
 
-    public List<Integer> getOptions() {
+    public List<Vote> getOptions() {
         return options;
     }
 
-    public void setOptions(List<Integer> options) {
+    public void setOptions(List<Vote> options) {
         this.options = options;
     }
 }

@@ -19,14 +19,27 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    private int points;
+
     public User() {}
 
     public User(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.points = 0;
     }
 
+    public int getPoints(){
+        return points;
+    }
+    public void setPoints(int points){
+        this.points = points;
+    }
+
+    public void decreasePoints(int points){
+        this.points = this.points - points;
+    }
     public int getId() { return id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
