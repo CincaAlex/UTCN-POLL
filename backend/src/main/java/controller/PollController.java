@@ -40,7 +40,6 @@ public class PollController {
 
     @PostMapping("/create")
     public ResponseEntity<ResultError> createPoll(@RequestBody Poll poll, @RequestParam int creatorId) {
-        // aici poți obține User-ul din DB sau din token
         User creator = new User(); // TODO: înlocuiește cu fetch din DB
         ResultError result = pollService.createPoll(poll, creator);
         return ResponseEntity.ok(result);
