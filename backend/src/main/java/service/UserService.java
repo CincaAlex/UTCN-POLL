@@ -59,5 +59,4 @@ public class UserService {
         User user = userOpt.get();
         return user.checkPassword(password);
     }
-
 }

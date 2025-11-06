@@ -21,9 +21,12 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    private String password; // parola stocata hashed
+    private String password;
 
     private int points;
+
+    private Integer verificationCode;
+    private boolean verified = false;
 
     public User() {}
 
@@ -32,38 +35,10 @@ public class User {
         this.email = email;
         this.password = hashPassword(plainPassword);
         this.points = 0;
+        this.verified = false;
     }
 
-    // 🔹 Gestionarea punctelor
-    public void addPoints(int points) {
-        this.points += points;
-    }
-
-    public void decreasePoints(int points) {
-        this.points -= points;
-        if(this.points < 0) this.points = 0;
-    }
-
-    public int getPoints() {
-        return points;
-    }
-
-    public void setPoints(int points) {
-        this.points = points;
-    }
-
-    // 🔹 Getter și setter JPA
-    public int getId() { return id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPassword() { return password; }
-
-    public void setPassword(String plainPassword) {
-        this.password = hashPassword(plainPassword);
-    }
-
+    // 🔹 Parola hashing SHA-256
     private String hashPassword(String plainPassword) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -75,7 +50,24 @@ public class User {
     }
 
     public boolean checkPassword(String plainPassword) {
-        String hashed = hashPassword(plainPassword);
-        return hashed.equals(this.password);
+        return hashPassword(plainPassword).equals(this.password);
     }
+
+    // 🔹 Getter și setter
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String plainPassword) { this.password = hashPassword(plainPassword); }
+    public int getPoints() { return points; }
+    public void setPoints(int points) { this.points = points; }
+    public void addPoints(int points) { this.points += points; }
+    public void decreasePoints(int points) { this.points = Math.max(0, this.points - points); }
+
+    public Integer getVerificationCode() { return verificationCode; }
+    public void setVerificationCode(Integer verificationCode) { this.verificationCode = verificationCode; }
+    public boolean isVerified() { return verified; }
+    public void setVerified(boolean verified) { this.verified = verified; }
 }
