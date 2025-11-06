@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Typography, Button, Box } from '@mui/material';
+import logo from '../../assets/logo_full.png';
 
 function Welcome() {
   return (
@@ -31,6 +32,7 @@ function Welcome() {
         >
           Register
         </Button>
+        <img src={logo} className="logo" alt="UTCN_Poll_logo" />
       </Box>
     </Container>
   );
