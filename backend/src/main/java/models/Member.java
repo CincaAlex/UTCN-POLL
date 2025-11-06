@@ -13,7 +13,7 @@ public class Member extends User {
 
 
     public Member(int id, String name, String email, String password) throws WinAPICallFailedException {
-        super(id, name, email, password);
+        super(name, email, password);
     }
 
     public long getPoints() {
