@@ -1,6 +1,5 @@
-// src/pages/Register.jsx
 import { useState } from 'react';
-import './Register.css';
+import { Container, Typography, TextField, Button, Box } from '@mui/material';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -23,8 +22,6 @@ function Register() {
     const newErrors = {};
 
     if (!formData.name) newErrors.name = 'Please insert your name';
-    if (!formData.email) newErrors.email = 'Please insert your email';
-    // === Verificare email cu domenii permise ===
     if (!formData.email) {
       newErrors.email = 'Please insert your email';
     } else {
@@ -45,11 +42,15 @@ function Register() {
       } else if (!isValidDomain) {
         newErrors.email = 'Email must be from UTCN';
       }
-    } if (!formData.password) newErrors.password = 'Password is required';
-    if (formData.password.length < 6)
+    }
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
       newErrors.password = 'Password has to be at least 6 characters long';
-    if (formData.password !== formData.confirmPassword)
+    }
+    if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    }
 
     return newErrors;
   };
@@ -61,93 +62,91 @@ function Register() {
       setErrors(validationErrors);
     } else {
       setErrors({});
-      console.log('Data  sent:', formData);
-      alert('Registeration successful!');
+      console.log('Data sent:', formData);
+      alert('Registration successful!');
     }
   };
 
   return (
-    <form className="register-form" onSubmit={handleSubmit}>
-      <h2 className="register-form__title text-2xl font-semibold text-center">
-        Register
-      </h2>
-
-      {/* Name */}
-      <div className="register-form__field">
-        <label className="register-form__label" htmlFor="name">
-          Name:
-        </label>
-        <input
-          id="name"
-          type="text"
-          name="name"
-          className="register-form__input"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="Full Name"
-        />
-        {errors.name && <p className="register-form__error">{errors.name}</p>}
-      </div>
-
-      {/* Email */}
-      <div className="register-form__field">
-        <label className="register-form__label" htmlFor="email">
-          Email:
-        </label>
-        <input
-          id="email"
-          type="email"
-          name="email"
-          className="register-form__input"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="example@domain.com"
-        />
-        {errors.email && <p className="register-form__error">{errors.email}</p>}
-      </div>
-
-      {/* Password */}
-      <div className="register-form__field">
-        <label className="register-form__label" htmlFor="password">
-          Password:
-        </label>
-        <input
-          id="password"
-          type="password"
-          name="password"
-          className="register-form__input"
-          value={formData.password}
-          onChange={handleChange}
-          placeholder="At least 6 characters"
-        />
-        {errors.password && (
-          <p className="register-form__error">{errors.password}</p>
-        )}
-      </div>
-
-      {/* Confirm password */}
-      <div className="register-form__field">
-        <label className="register-form__label" htmlFor="confirmPassword">
-          Confirm password:
-        </label>
-        <input
-          id="confirmPassword"
-          type="password"
-          name="confirmPassword"
-          className="register-form__input"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          placeholder="Confirm Password"
-        />
-        {errors.confirmPassword && (
-          <p className="register-form__error">{errors.confirmPassword}</p>
-        )}
-      </div>
-
-      <button type="submit" className="register-form__button">
-        Register
-      </button>
-    </form>
+    <Container maxWidth="xs">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Typography component="h1" variant="h5">
+          Register
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="name"
+            label="Full Name"
+            name="name"
+            autoComplete="name"
+            autoFocus
+            value={formData.name}
+            onChange={handleChange}
+            error={!!errors.name}
+            helperText={errors.name}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="email"
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            value={formData.email}
+            onChange={handleChange}
+            error={!!errors.email}
+            helperText={errors.email}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label="Password"
+            type="password"
+            id="password"
+            autoComplete="new-password"
+            value={formData.password}
+            onChange={handleChange}
+            error={!!errors.password}
+            helperText={errors.password}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="confirmPassword"
+            label="Confirm Password"
+            type="password"
+            id="confirmPassword"
+            autoComplete="new-password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
+          />
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Register
+          </Button>
+        </Box>
+      </Box>
+    </Container>
   );
 }
 

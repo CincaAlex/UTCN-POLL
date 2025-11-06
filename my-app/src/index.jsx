@@ -1,7 +1,7 @@
 // src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import LoginApp from './LoginApp';
+import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<LoginApp />);
+root.render(<App />);
