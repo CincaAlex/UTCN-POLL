@@ -1,0 +1,70 @@
+/*
+ * CSS for a simple homepage with two buttons: Login and Register
+ */
+
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Ensure the content takes at least the full viewport height */
+    background-color: #f4f4f9; /* Light background for the page */
+    color: #333;
+}
+
+.container {
+    text-align: center;
+    padding: 40px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+h1 {
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+.button-group {
+    display: flex;
+    gap: 20px; /* Space between the buttons */
+    justify-content: center;
+}
+
+.btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s; /* Smooth transitions for hover effects */
+    text-decoration: none; /* Important if the buttons are actually <a> tags */
+    display: inline-block;
+}
+
+/* --- Specific Button Styling --- */
+
+/* Login Button */
+.btn-login {
+    background-color: #3498db; /* Blue color */
+    color: white;
+}
+
+.btn-login:hover {
+    background-color: #2980b9; /* Darker blue on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+}
+
+/* Register Button */
+.btn-register {
+    background-color: #2ecc71; /* Green color */
+    color: white;
+}
+
+.btn-register:hover {
+    background-color: #27ae60; /* Darker green on hover */
+    transform: translateY(-2px);
+}
