@@ -10,7 +10,7 @@ public class Admin extends User{
     private List<Integer> createdPoll = new ArrayList<Integer>();
 
     public Admin(int id, String name, String email, String password) throws WinAPICallFailedException {
-        super(id, name, email, password);
+        super(name, email, password);
     }
 
     public List<Integer> getCreatedPoll() {
