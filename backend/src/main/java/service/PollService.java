@@ -10,6 +10,7 @@ import repository.PollRepository;
 import javax.xml.transform.Result;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -78,4 +79,46 @@ public class PollService {
         return new ResultError(true, "Vote successfully registered");
     }
 
+    public ResultError deletePoll(int pollId){
+        Poll poll = pollRepository.findById(pollId).orElse(null);
+        if (poll == null) {
+            return new ResultError(false, "Poll not found");
+        }
+
+        pollRepository.delete(poll);
+
+        return new ResultError(true, "");
+    }
+
+    public ResultError updatePoll(int pollId, Poll updatedPoll, User user) {
+        Optional<Poll> existingPollOpt = pollRepository.findById(pollId);
+        if (existingPollOpt.isEmpty()) return new ResultError(false, "Poll not found");
+
+        Poll existingPoll = existingPollOpt.get();
+        if (existingPoll.isExpired()) return new ResultError(false, "Poll already closed");
+        if (existingPoll.getCreatorId() != user.getId()) return new ResultError(false, "Unauthorized");
+
+        existingPoll.setTitle(updatedPoll.getTitle());
+        existingPoll.setOptions(updatedPoll.getOptions());
+        existingPoll.setEndDate(updatedPoll.getEndDate());
+        pollRepository.save(existingPoll);
+
+        return new ResultError(true, "Poll updated successfully");
+    }
+
+    public Optional<Poll> getVotesForPoll(int pollId) {
+        return pollRepository.findById(pollId);
+    }
+
+    public Map<String, Double> getResults(int pollId) {
+        Optional<Poll> pollOpt = pollRepository.findById(pollId);
+        if (pollOpt.isEmpty()) return Map.of();
+
+        Poll poll = pollOpt.get();
+        return poll.calculateResults();
+    }
+
+    public List<Poll> getAllPolls() {
+        return pollRepository.findAll();
+    }
 }
