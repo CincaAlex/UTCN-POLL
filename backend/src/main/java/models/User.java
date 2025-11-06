@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -51,6 +53,20 @@ public class User {
 
     public boolean checkPassword(String plainPassword) {
         return hashPassword(plainPassword).equals(this.password);
+    }
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_achievements",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "achievement_id")
+    )
+    private Set<Achievement> earnedAchievements = new HashSet<>();
+
+    // Add getter and setter
+    public Set<Achievement> getEarnedAchievements() { return earnedAchievements; }
+    public void setEarnedAchievements(Set<Achievement> earnedAchievements) {
+        this.earnedAchievements = earnedAchievements;
     }
 
     // 🔹 Getter și setter
