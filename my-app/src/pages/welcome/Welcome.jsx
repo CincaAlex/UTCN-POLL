@@ -1,38 +1,22 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Typography, Button, Box } from '@mui/material';
+import './Welcome.css';
+import logo from '../../assets/logo_background_negru.png'; // Assuming you have a logo to import
 
 function Welcome() {
   return (
-    <Container maxWidth="sm" sx={{ textAlign: 'center', mt: 8 }}>
-      <Typography variant="h3" component="h1" gutterBottom>
-        Welcome to UTCN-POLL
-      </Typography>
-      <Typography variant="h5" color="text.secondary" paragraph>
-        Please log in or register to continue.
-      </Typography>
-      <Box sx={{ mt: 4 }}>
-        <Button
-          component={Link}
-          to="/login"
-          variant="contained"
-          color="primary"
-          size="large"
-          sx={{ mr: 2 }}
-        >
+    <div className="welcome-container">
+      <img src={logo} alt="UTCN-POLL Logo" style={{ maxWidth: '300px', marginBottom: '2rem', animation: 'fadeIn 1s ease-in-out' }} />
+      <h1 className="welcome-title">Welcome to UTCN-POLL</h1>
+      <div className="welcome-buttons">
+        <Link to="/login" className="welcome-button">
           Login
-        </Button>
-        <Button
-          component={Link}
-          to="/register"
-          variant="contained"
-          color="secondary"
-          size="large"
-        >
+        </Link>
+        <Link to="/register" className="welcome-button">
           Register
-        </Button>
-      </Box>
-    </Container>
+        </Link>
+      </div>
+    </div>
   );
 }
 
