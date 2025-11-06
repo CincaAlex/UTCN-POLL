@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,6 +30,8 @@ public class User {
 
     private Integer verificationCode;
     private boolean verified = false;
+    private LocalDate lastSpinDate;
+
 
     public User() {}
 
@@ -50,6 +53,9 @@ public class User {
             throw new RuntimeException("Error hashing password", e);
         }
     }
+
+    public LocalDate getLastSpinDate() { return lastSpinDate; }
+    public void setLastSpinDate(LocalDate lastSpinDate) { this.lastSpinDate = lastSpinDate; }
 
     public boolean checkPassword(String plainPassword) {
         return hashPassword(plainPassword).equals(this.password);
