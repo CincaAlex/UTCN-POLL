@@ -1,0 +1,327 @@
+.postCard {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 2px 0 var(--shadow-2);
+}
+
+.postHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.username {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.postTime {
+    color: var(--text-secondary);
+}
+
+.postContent {
+    margin-bottom: 0.5rem; /* Reduced margin */
+}
+
+.postTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.postBody {
+    font-size: 1rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.postStats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.postStats span {
+    cursor: pointer;
+}
+
+.postStats span:hover {
+    text-decoration: underline;
+}
+
+.postFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.5rem;
+}
+
+.actionButtons button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s, color 0.2s;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Poppins', sans-serif;
+}
+
+.actionButtons button:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.actionButtons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* New styles for reactions */
+.reactionsContainer {
+    position: relative;
+    display: flex;
+}
+
+.likeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s, color 0.2s;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Poppins', sans-serif;
+    text-transform: capitalize;
+}
+
+.likeButton:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.likeButton > * {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reactionsPicker {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 0.5rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 50px;
+    padding: 0.25rem;
+    display: flex;
+    gap: 0.25rem;
+    box-shadow: 0 2px 8px var(--shadow-1);
+    animation: pop-up 0.2s ease;
+}
+
+.reactionsPicker button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    transition: transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reactionsPicker button:hover {
+    transform: scale(1.2);
+}
+
+@keyframes pop-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Reaction-specific colors */
+.likeIcon { color: var(--accent); }
+.heartIcon { color: #e0245e; }
+.hahaIcon { color: #f7b529; }
+.sadIcon { color: #4a90e2; }
+.angryIcon { color: #e0245e; }
+
+/* Comment Section Styles */
+.commentSection {
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-primary);
+}
+
+.commentForm {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.commentInput {
+    width: 100%;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+}
+
+.commentInput:focus {
+    border-color: var(--accent);
+}
+
+.commentForm button {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 0 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+
+.commentForm button:hover {
+    filter: brightness(0.9);
+}
+
+.commentList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.comment {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.commentAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.commentBody {
+    background-color: var(--bg-tertiary);
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    width: fit-content;
+}
+
+.commentUser {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.commentText {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+/* Modal User List Styles */
+.userList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.userListItem {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.userListItem img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.userListItem span {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Share Icons Pop-up Styles */
+.shareContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.shareIconsPicker {
+    position: absolute;
+    bottom: 100%;
+    right: 0; /* Position relative to the share button */
+    margin-bottom: 0.5rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 50px;
+    padding: 0.25rem;
+    display: flex;
+    gap: 0.25rem;
+    box-shadow: 0 2px 8px var(--shadow-1);
+    animation: pop-up 0.2s ease;
+}
+
+.shareIconsPicker button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    transition: transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.shareIconsPicker button:hover {
+    transform: scale(1.2);
+    color: var(--accent);
+}
