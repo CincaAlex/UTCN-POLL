@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -37,8 +39,7 @@ function Login() {
     } else {
       setErrors({});
       console.log('Data sent:', formData);
-      alert('Login successful! (simulation)');
-      //aici legatura back
+      navigate('/homepage');
     }
   };
 
