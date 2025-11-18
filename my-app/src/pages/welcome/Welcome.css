@@ -1,16 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
 body.light {
-  --background-color: #F0F2F5;
-  --text-color: #1c1e21;
-  --secondary-text-color: #65676b;
-  --accent-color: #007BFF;
+  --background-color: #121212;
+  --text-color: #FFFFFF;
+  --secondary-text-color: #B3B3B3;
+  --accent-color: #CF1F23;
   --button-bg-color: transparent;
   --button-border-color: var(--accent-color);
   --button-hover-bg-color: var(--accent-color);
   --button-hover-text-color: #FFFFFF;
-  --shadow-color: rgba(0, 123, 255, 0.2);
-  --shadow-hover-color: rgba(0, 123, 255, 0.4);
+  --shadow-color: #CF1F23;
+  --shadow-hover-color: #CF1F23;
 }
 
 body.dark {
@@ -22,8 +22,8 @@ body.dark {
   --button-border-color: var(--accent-color);
   --button-hover-bg-color: var(--accent-color);
   --button-hover-text-color: #FFFFFF;
-  --shadow-color: rgba(0, 123, 255, 0.2);
-  --shadow-hover-color: rgba(0, 123, 255, 0.4);
+  --shadow-color: #CF1F23;
+  --shadow-hover-color: #CF1F23;
 }
 
 body, html {

@@ -13,9 +13,6 @@ function Welcome() {
     <div className="welcome-container">
       <img src={currentLogo} alt="UTCN-POLL Logo" style={{ maxWidth: '300px', marginBottom: '2rem', animation: 'fadeIn 1s ease-in-out' }} />
       <h1 className="welcome-title">Welcome to UTCN-POLL</h1>
-      <p className="welcome-subtitle">
-        Your voice matters. Participate in polls, share your opinions, and see what the community thinks. Please log in or register to continue.
-      </p>
       <div className="welcome-buttons">
         <Link to="/login" className="welcome-button">
           Login
