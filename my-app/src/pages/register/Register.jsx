@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Register.css';
 
 function Register() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -60,7 +62,7 @@ function Register() {
     } else {
       setErrors({});
       console.log('Data sent:', formData);
-      alert('Registration successful!');
+      navigate('/homepage');
     }
   };
 
