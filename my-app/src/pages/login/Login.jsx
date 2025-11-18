@@ -38,7 +38,6 @@ function Login() {
       setErrors({});
       console.log('Date trimise:', formData);
       alert('Login successful! (simulation)');
-      // Aici vei trimite datele către backend mai târziu
     }
   };
 
