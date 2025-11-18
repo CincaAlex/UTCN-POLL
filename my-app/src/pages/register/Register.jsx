@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Container, Typography, TextField, Button, Box } from '@mui/material';
+import './Register.css';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -22,20 +22,14 @@ function Register() {
     const newErrors = {};
 
     if (!formData.name) newErrors.name = 'Please insert your name';
+    
     if (!formData.email) {
       newErrors.email = 'Please insert your email';
     } else {
       const emailLower = formData.email.toLowerCase().trim();
-      let isValidDomain = false;
-
-      switch (true) {
-        case emailLower.endsWith('@student.utcluj.ro'):
-        case emailLower.endsWith('@campus.utcluj.ro'):
-          isValidDomain = true;
-          break;
-        default:
-          isValidDomain = false;
-      }
+      const isValidDomain =
+        emailLower.endsWith('@student.utcluj.ro') ||
+        emailLower.endsWith('@campus.utcluj.ro');
 
       if (!emailLower.includes('@')) {
         newErrors.email = 'Email must contain @';
@@ -43,11 +37,13 @@ function Register() {
         newErrors.email = 'Email must be from UTCN';
       }
     }
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password has to be at least 6 characters long';
     }
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
@@ -58,6 +54,7 @@ function Register() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const validationErrors = validate();
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
     } else {
@@ -68,85 +65,65 @@ function Register() {
   };
 
   return (
-    <Container maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Typography component="h1" variant="h5">
-          Register
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="name"
-            label="Full Name"
+    <div className="register-container">
+      <h2>Register</h2>
+
+      <form onSubmit={handleSubmit} className="register-form">
+        <div className="input-group">
+          <label className="label">Full Name</label>
+          <input
+            type="text"
             name="name"
-            autoComplete="name"
-            autoFocus
             value={formData.name}
             onChange={handleChange}
-            error={!!errors.name}
-            helperText={errors.name}
+            className={errors.name ? "error-input" : ""}
           />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email Address"
+          {errors.name && <small className="error-text">{errors.name}</small>}
+        </div>
+
+        <div className="input-group">
+          <label className="label">Email Address</label>
+          <input
+            type="email"
             name="email"
-            autoComplete="email"
             value={formData.email}
             onChange={handleChange}
-            error={!!errors.email}
-            helperText={errors.email}
+            className={errors.email ? "error-input" : ""}
           />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
+          {errors.email && <small className="error-text">{errors.email}</small>}
+        </div>
+
+        <div className="input-group">
+          <label className="label">Password</label>
+          <input
             type="password"
-            id="password"
+            name="password"
             autoComplete="new-password"
             value={formData.password}
             onChange={handleChange}
-            error={!!errors.password}
-            helperText={errors.password}
+            className={errors.password ? "error-input" : ""}
           />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="confirmPassword"
-            label="Confirm Password"
+          {errors.password && <small className="error-text">{errors.password}</small>}
+        </div>
+
+        <div className="input-group">
+          <label className="label">Confirm Password</label>
+          <input
             type="password"
-            id="confirmPassword"
+            name="confirmPassword"
             autoComplete="new-password"
             value={formData.confirmPassword}
             onChange={handleChange}
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword}
+            className={errors.confirmPassword ? "error-input" : ""}
           />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Register
-          </Button>
-        </Box>
-      </Box>
-    </Container>
+          {errors.confirmPassword && <small className="error-text">{errors.confirmPassword}</small>}
+        </div>
+
+        <button type="submit" className="register-btn">
+          Register
+        </button>
+      </form>
+    </div>
   );
 }
 

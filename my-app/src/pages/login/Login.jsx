@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Container, Typography, TextField, Button, Box } from '@mui/material';
+import './Login.css';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -36,64 +36,46 @@ function Login() {
       setErrors(validationErrors);
     } else {
       setErrors({});
-      console.log('Date trimise:', formData);
+      console.log('Data sent:', formData);
       alert('Login successful! (simulation)');
+      //aici legatura back
     }
   };
 
   return (
-    <Container maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Typography component="h1" variant="h5">
-          Login
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email Address"
+    <div className="login-container">
+      <h2>Login</h2>
+
+      <form onSubmit={handleSubmit} className="login-form">
+        <div className="input-group">
+          <span className = 'label'> Email Address </span>
+          <input
+            type="email"
             name="email"
-            autoComplete="email"
-            autoFocus
             value={formData.email}
             onChange={handleChange}
-            error={!!errors.email}
-            helperText={errors.email}
+            className={errors.email ? "error-input" : ""}
           />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
+          {errors.email && <small className="error-text">{errors.email}</small>}
+        </div>
+
+        <div className="input-group">
+          <span className = "label"> Password </span>
+          <input
             type="password"
-            id="password"
-            autoComplete="current-password"
+            name="password"
             value={formData.password}
             onChange={handleChange}
-            error={!!errors.password}
-            helperText={errors.password}
+            className={errors.password ? "error-input" : ""}
           />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Login
-          </Button>
-        </Box>
-      </Box>
-    </Container>
+          {errors.password && <small className="error-text">{errors.password}</small>}
+        </div>
+
+        <button type="submit" className="login-btn">
+          Login
+        </button>
+      </form>
+    </div>
   );
 }
 
