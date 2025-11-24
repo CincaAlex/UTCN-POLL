@@ -15,11 +15,6 @@ const TopBar = () => {
         setIsAvatarMenuOpen(false);
     };
 
-    const handleSettings = () => {
-        console.log('Settings');
-        setIsAvatarMenuOpen(false);
-    };
-
     const handleAvatarClick = () => {
         navigate('/profile');
     };
@@ -30,7 +25,6 @@ const TopBar = () => {
                 <div className={styles.logo}>UTCNHub</div>
                 <nav className={`${styles.navLinks} ${isMenuOpen ? styles.open : ''}`}>
                     <button onClick={() => navigate('/create-poll')}>Create poll</button>
-                    <button onClick={() => navigate('/dashboard')}>Dashboard</button>
                 </nav>
                 <div className={styles.topBarRight}>
                     <div 
@@ -46,7 +40,6 @@ const TopBar = () => {
                         />
                         {isAvatarMenuOpen && (
                             <div className={styles.avatarDropdown}>
-                                <button onClick={handleSettings}>Settings</button>
                                 <button onClick={toggleTheme}>
                                     Theme: {theme === 'light' ? 'Dark' : 'Light'} Mode
                                 </button>
