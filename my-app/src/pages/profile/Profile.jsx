@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { ThemeContext } from '../../context/ThemeContext';
 import { 
   XAxis, 
   YAxis, 
@@ -46,16 +47,9 @@ const saveProfileData = (updatedData) => {
   });
 };
 
-const getNextSpinTime = () => {
-  const stored = localStorage.getItem('lastSpinTime');
-  if (!stored) return 0; 
-  return parseInt(stored, 10) + (24 * 60 * 60 * 1000); 
-};
+const getNextSpinTime = () => { const stored = localStorage.getItem('lastSpinTime'); if (!stored) return 0; return parseInt(stored, 10) + (24 * 60 * 60 * 1000); };
 
-// ----------------------------------------
-// DailySpinModal Component
-// ----------------------------------------
-function DailySpinModal({ onComplete, onClose }) {
+function DailySpinModal({ onComplete, onClose, theme }) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [winResult, setWinResult] = useState(null);
@@ -71,84 +65,55 @@ function DailySpinModal({ onComplete, onClose }) {
 
   const handleSpin = () => {
     if (isSpinning || winResult) return;
-
     setIsSpinning(true);
-    
     const winnerIndex = Math.floor(Math.random() * prizes.length);
     const segmentAngle = 360 / prizes.length; 
-    
-    // Math to land on the chosen segment
     const winningSegmentCenter = (winnerIndex * segmentAngle) + (segmentAngle / 2);
     const targetRotation = 360 - winningSegmentCenter;
     const totalRotation = (360 * 5) + targetRotation;
-
     setRotation(totalRotation);
 
     setTimeout(() => {
       setIsSpinning(false);
       const wonPrize = prizes[winnerIndex];
       setWinResult(wonPrize);
-      // IMPORTANT: We REMOVED onComplete() from here.
-      // It is now called only when the user clicks the button below.
     }, 4000);
   };
 
-  // New handler for the Claim button
   const handleClaim = () => {
-    if (winResult) {
-      onComplete(winResult.value); // Update tokens now
-    }
-    onClose(); // Close modal
+    if (winResult) onComplete(winResult.value);
+    onClose();
   };
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal-panel spin-container">
+    <div className={`modal-backdrop ${theme}`}>
+      <div className={`modal-panel ${theme} spin-container`}>
         <h2>Daily Lucky Spin</h2>
-        
         <div className="wheel-wrapper">
           <div className="wheel-marker"></div>
           <div 
             className="wheel" 
             style={{ 
               transform: `rotate(${rotation}deg)`,
-              background: `conic-gradient(
-                ${prizes.map((p, i) => `${p.color} ${i * 60}deg ${(i + 1) * 60}deg`).join(', ')}
-              )`
+              background: `conic-gradient(${prizes.map((p, i) => `${p.color} ${i * 60}deg ${(i + 1) * 60}deg`).join(', ')})`
             }}
           >
-             {prizes.map((prize, i) => (
-              <div 
-                key={i} 
-                className="wheel-label"
-                style={{ 
-                  transform: `translateX(-50%) rotate(${i * 60 + 30}deg)` 
-                }}
-              >
+            {prizes.map((prize, i) => (
+              <div key={i} className="wheel-label" style={{ transform: `translateX(-50%) rotate(${i * 60 + 30}deg)` }}>
                 {prize.label}
               </div>
             ))}
           </div>
         </div>
-
         {!winResult ? (
-          <button 
-            onClick={handleSpin} 
-            className="btn btn-rewards" 
-            style={{ width: 'auto', padding: '10px 40px' }}
-            disabled={isSpinning}
-          >
+          <button onClick={handleSpin} className={`btn btn-save ${theme}`} disabled={isSpinning}>
             {isSpinning ? "Spinning..." : "SPIN NOW!"}
           </button>
         ) : (
           <div className="spin-result">
             <p>Congratulations! You won:</p>
             <h3>{winResult.label} Tokens</h3>
-            <button 
-              onClick={handleClaim} // Call our new handler
-              className="btn btn-save" 
-              style={{ marginTop: '20px' }}
-            >
+            <button onClick={handleClaim} className={`btn btn-save ${theme}`} style={{ marginTop: '20px' }}>
               Claim & Close
             </button>
           </div>
@@ -158,63 +123,44 @@ function DailySpinModal({ onComplete, onClose }) {
   );
 }
 
-// ----------------------------------------
-// Edit Profile Modal
-// ----------------------------------------
-function EditProfileModal({ formData, onChange, onSave, onCancel, isSaving }) {
+function EditProfileModal({ formData, onChange, onFileChange, onSave, onCancel, isSaving, theme }) {
   return (
-    <div className="modal-backdrop">
-      <div className="modal-panel">
+    <div className={`modal-backdrop ${theme}`}>
+      <div className={`modal-panel ${theme}`}>
         <h2>Edit Your Profile</h2>
+
         <div className="form-group">
           <label className="stat-label">Username</label>
-          <input
-            type="text"
-            name="username"
-            id="username"
-            className="edit-input"
-            value={formData.username}
-            onChange={onChange}
-          />
+          <input type="text" name="username" value={formData.username} onChange={onChange} className="edit-input" />
         </div>
+
         <div className="form-group">
-          <label className="stat-label">Photo URL</label>
-          <input
-            type="text"
-            name="photoUrl"
-            id="photoUrl"
-            className="edit-input"
-            value={formData.photoUrl}
-            onChange={onChange}
-          />
+          <label className="stat-label">Photo</label>
+          <input type="file" accept="image/*" onChange={onFileChange} className="edit-input" />
         </div>
+
         <div className="modal-controls">
-          <button onClick={onSave} className="btn btn-save" disabled={isSaving}>
+          <button onClick={onSave} className={`btn btn-save ${theme}`} disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
-          <button onClick={onCancel} className="btn btn-cancel" disabled={isSaving}>
-            Cancel
-          </button>
+          <button onClick={onCancel} className={`btn btn-cancel ${theme}`} disabled={isSaving}>Cancel</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ----------------------------------------
-// Main Profile Component
-// ----------------------------------------
 function Profile() {
-  const [pageLoading, setPageLoading] = useState(true); 
-  const [isSaving, setIsSaving] = useState(false);      
+  const [pageLoading, setPageLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [userData, setUserData] = useState(null);
-  
-  const [isEditing, setIsEditing] = useState(false); 
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
-
   const [showSpin, setShowSpin] = useState(false);
   const [canSpin, setCanSpin] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
+
+  const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -237,7 +183,6 @@ function Profile() {
     const nextSpin = getNextSpinTime();
     //const nextSpin = Date.now();
     const now = Date.now();
-
     if (now >= nextSpin) {
       setCanSpin(true);
       setTimeLeft("");
@@ -252,15 +197,28 @@ function Profile() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({ ...prevData, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const imageUrl = URL.createObjectURL(file);
+
+    setFormData(prev => ({
+      ...prev,
+      photoUrl: imageUrl,
+      photoFile: file
+    }));
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
       await saveProfileData(formData);
-      setUserData(formData); 
-      setIsEditing(false);   
+      setUserData(formData);
+      setIsEditing(false);
     } catch (error) {
       console.error("Failed to save data:", error);
     } finally {
@@ -275,56 +233,40 @@ function Profile() {
 
   const handleSpinComplete = async (wonAmount) => {
     localStorage.setItem('lastSpinTime', Date.now().toString());
-    
-    const newData = { 
-      ...userData, 
-      tokens: userData.tokens + wonAmount 
-    };
-    
-    // Optimistic update: update UI immediately
+    const newData = { ...userData, tokens: userData.tokens + wonAmount };
     setUserData(newData);
     setFormData(newData);
     checkSpinAvailability();
-
-    // Then save to DB
     await saveProfileData(newData);
   };
 
-  if (pageLoading) {
-    return (
-      <div className="profile-container">
-        <div className="profile-card loading-state">Loading...</div>
-      </div>
-    );
-  }
+  if (pageLoading) return (
+    <div className={`profile-container ${theme}`}>
+      <div className="profile-card loading-state">Loading...</div>
+    </div>
+  );
 
-  if (!userData) {
-    return (
-      <div className="profile-container">
-        <div className="profile-card error-state">Error loading data.</div>
-      </div>
-    );
-  }
-  
+  if (!userData) return (
+    <div className={`profile-container ${theme}`}>
+      <div className="profile-card error-state">Error loading data.</div>
+    </div>
+  );
+
   const { friends, tokens, badges, username, photoUrl, pollHistory } = userData;
 
   return (
-    <div className="profile-container">
-      <div className="profile-card">
-        
+    <div className={`profile-container ${theme}`}>
+      <div className={`profile-card ${theme}`}>
         <div className="edit-controls">
-          <button onClick={() => setIsEditing(true)} className="btn btn-edit">
-            Edit Profile
-          </button>
+          <button onClick={() => setIsEditing(true)} className={`btn btn-edit ${theme}`}>Edit Profile</button>
         </div>
-        
         <div className="profile-header">
           <img src={photoUrl} alt="Player Avatar" className="profile-avatar" />
           <div className="profile-info">
             <h1 className="username">{username}</h1>
           </div>
         </div>
-        
+
         <div className="stats-grid">
           <div className="stat-item">
             <span className="stat-label">Tokens</span>
@@ -337,18 +279,15 @@ function Profile() {
         </div>
 
         <div className="rewards-box">
-            <button 
-              className={`btn-rewards ${!canSpin ? 'disabled' : ''}`}
-              onClick={() => canSpin && setShowSpin(true)}
-              disabled={!canSpin}
-            >
-                {canSpin 
-                  ? "🎁 Get your daily rewards" 
-                  : `⏳ Come back in ${timeLeft}`
-                }
-            </button>
+          <button 
+            className={`btn-rewards ${theme} ${!canSpin ? 'disabled' : ''}`}
+            onClick={() => canSpin && setShowSpin(true)}
+            disabled={!canSpin}
+          >
+            {canSpin ? "🎁 Get your daily rewards" : `⏳ Come back in ${timeLeft}`}
+          </button>
         </div>
-        
+
         <div className="chart-section">
           <h2>📈 Poll Performance</h2>
           <div className="chart-container">
@@ -361,30 +300,10 @@ function Profile() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#444" vertical={false} />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="#aaa" 
-                  tick={{fill: '#aaa', fontSize: 12}}
-                  tickLine={false} axisLine={false}
-                />
-                <YAxis 
-                  stroke="#aaa" 
-                  tick={{fill: '#aaa', fontSize: 12}} 
-                  tickLine={false} axisLine={false}
-                  tickFormatter={(value) => `${value / 1000}k`}
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#2b2d3e', border: '1px solid #CF1F23', borderRadius: '8px' }}
-                  itemStyle={{ color: '#CF1F23' }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="winnings" 
-                  stroke="#CF1F23" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorWinnings)" 
-                />
+                <XAxis dataKey="month" stroke="#aaa" tick={{fill: '#aaa', fontSize: 12}} tickLine={false} axisLine={false} />
+                <YAxis stroke="#aaa" tick={{fill: '#aaa', fontSize: 12}} tickLine={false} axisLine={false} tickFormatter={(value) => `${value / 1000}k`} />
+                <Tooltip contentStyle={{ backgroundColor: '#2b2d3e', border: '1px solid #CF1F23', borderRadius: '8px' }} itemStyle={{ color: '#CF1F23' }} />
+                <Area type="monotone" dataKey="winnings" stroke="#CF1F23" strokeWidth={3} fillOpacity={1} fill="url(#colorWinnings)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -408,9 +327,11 @@ function Profile() {
         <EditProfileModal
           formData={formData}
           onChange={handleChange}
+          onFileChange={handleFileChange}
           onSave={handleSave}
           onCancel={handleCancel}
           isSaving={isSaving}
+          theme={theme}
         />
       )}
 
@@ -418,6 +339,7 @@ function Profile() {
         <DailySpinModal 
           onComplete={handleSpinComplete}
           onClose={() => setShowSpin(false)}
+          theme={theme}
         />
       )}
     </div>
