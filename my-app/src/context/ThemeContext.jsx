@@ -17,3 +17,6 @@ export function ThemeProvider({ children }) {
     </ThemeContext.Provider>
   );
 }
+
+// Custom hook to use the theme context
+export const useTheme = () => React.useContext(ThemeContext);

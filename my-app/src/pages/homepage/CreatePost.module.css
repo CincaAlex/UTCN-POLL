@@ -59,3 +59,10 @@
     color: var(--text-secondary);
     cursor: not-allowed;
 }
+
+.errorMessage {
+    color: var(--error-red); /* Assuming you have an error-red variable in your theme */
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}

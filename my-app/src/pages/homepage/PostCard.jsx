@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react';
 import styles from './PostCard.module.css';
-import { FiHeart, FiMessageSquare, FiShare2 } from 'react-icons/fi';
+import { FiHeart, FiMessageSquare, FiShare2, FiEdit } from 'react-icons/fi'; // Added FiEdit
 import { FaGrin, FaSadTear, FaAngry, FaInstagram, FaFacebook, FaTwitter, FaWhatsapp } from "react-icons/fa";
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import Modal from '../../components/Modal/Modal';
 
-const PostCard = ({ post }) => {
-    const { id, user, time, title, body, comments: initialComments, likedBy, counts: initialCounts } = post;
+const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpdatePost and currentUsername props
+    const { id, user, time, title, body, isEdited, comments: initialComments, likedBy, counts: initialCounts } = post; // Destructure isEdited
+
+
     
     // State for UI interaction
     const [isReactionsVisible, setReactionsVisible] = useState(false);
@@ -14,6 +16,9 @@ const PostCard = ({ post }) => {
     const [selectedReaction, setSelectedReaction] = useState(null);
     const [isCommentSectionVisible, setCommentSectionVisible] = useState(false);
     const [isLikesModalOpen, setLikesModalOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false); // New state for edit mode
+    const [editedTitle, setEditedTitle] = useState(title); // State for edited title
+    const [editedBody, setEditedBody] = useState(body); // State for edited body
 
     // State for data
     const [comments, setComments] = useState(initialComments);
@@ -73,6 +78,21 @@ const PostCard = ({ post }) => {
         shareTimeoutRef.current = setTimeout(() => setShareIconsVisible(false), 200);
     };
 
+    const handleEditClick = () => {
+        setIsEditing(true);
+    };
+
+    const handleSaveClick = () => {
+        onUpdatePost(id, editedTitle, editedBody); // Call onUpdatePost with id, new title, new body
+        setIsEditing(false);
+    };
+
+    const handleCancelClick = () => {
+        setIsEditing(false);
+        setEditedTitle(title); // Revert to original title
+        setEditedBody(body);   // Revert to original body
+    };
+
     const ReactionDisplay = () => {
         switch (selectedReaction) {
             case 'like': return <><AiFillLike className={styles.likeIcon} /> Like</>;
@@ -101,11 +121,39 @@ const PostCard = ({ post }) => {
                 <div className={styles.postHeader}>
                     <img src={user.avatar} alt="User Avatar" className={styles.avatar} />
                     <span className={styles.username}>{user.name}</span>
-                    <span className={styles.postTime}>⋅ {time}</span>
+                    <span className={styles.postTime}>⋅ {time} {isEdited && <span className={styles.editedIndicator}>(edited)</span>}</span> {/* Conditionally render (edited) */}
+                    {/* Only show edit button if current user is the author and not already editing */}
+                    {!isEditing && user.name === currentUsername && (
+                        <button onClick={handleEditClick} className={styles.editButton}>
+                            <FiEdit /> Edit
+                        </button>
+                    )}
                 </div>
                 <div className={styles.postContent}>
-                    <h3 className={styles.postTitle}>{title}</h3>
-                    <p className={styles.postBody}>{body}</p>
+                    {isEditing ? (
+                        <>
+                            <input 
+                                type="text"
+                                value={editedTitle}
+                                onChange={(e) => setEditedTitle(e.target.value)}
+                                className={styles.editTitleInput}
+                            />
+                            <textarea
+                                value={editedBody}
+                                onChange={(e) => setEditedBody(e.target.value)}
+                                className={styles.editBodyTextarea}
+                            />
+                            <div className={styles.editActions}>
+                                <button onClick={handleSaveClick}>Save</button>
+                                <button onClick={handleCancelClick}>Cancel</button>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <h3 className={styles.postTitle}>{title}</h3>
+                            <p className={styles.postBody}>{body}</p>
+                        </>
+                    )}
                 </div>
 
                 <div className={styles.postStats}>
@@ -157,31 +205,29 @@ const PostCard = ({ post }) => {
                     </div>
                 </div>
 
-                {isCommentSectionVisible && (
-                    <div className={styles.commentSection}>
-                        <form onSubmit={handleAddComment} className={styles.commentForm}>
-                            <input 
-                                type="text"
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                placeholder="Write a comment..."
-                                className={styles.commentInput}
-                            />
-                            <button type="submit">Post</button>
-                        </form>
-                        <div className={styles.commentList}>
-                            {comments.map((comment, index) => (
-                                <div key={index} className={styles.comment}>
-                                    <img src={comment.user.avatar} alt="User Avatar" className={styles.commentAvatar} />
-                                    <div className={styles.commentBody}>
-                                        <span className={styles.commentUser}>{comment.user.name}</span>
-                                        <p className={styles.commentText}>{comment.text}</p>
-                                    </div>
+                <div className={`${styles.commentSection} ${isCommentSectionVisible ? styles.visible : ''}`}>
+                    <form onSubmit={handleAddComment} className={styles.commentForm}>
+                        <input 
+                            type="text"
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="Write a comment..."
+                            className={styles.commentInput}
+                        />
+                        <button type="submit">Post</button>
+                    </form>
+                    <div className={styles.commentList}>
+                        {comments.map((comment, index) => (
+                            <div key={index} className={styles.comment}>
+                                <img src={comment.user.avatar} alt="User Avatar" className={styles.commentAvatar} />
+                                <div className={styles.commentBody}>
+                                    <span className={styles.commentUser}>{comment.user.name}</span>
+                                    <p className={styles.commentText}>{comment.text}</p>
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </div>
-                )}
+                </div>
             </div>
         </>
     );
