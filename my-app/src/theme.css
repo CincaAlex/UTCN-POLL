@@ -12,11 +12,11 @@ body, html {
 body.light {
   --bg-primary: #F0F2F5;
   --bg-secondary: #FFFFFF;
-  --bg-tertiary: #F0F2F5;
+  --bg-tertiary: #1e375e;
   --text-primary: #050505;
   --text-secondary: #65676B;
   --text-tertiary: #8A8D91;
-  --accent: #0866FF;
+  --accent: #FA383E;
   --border-primary: #CED0D4;
   --border-secondary: #E5E7EB;
   --shadow-1: rgba(0, 0, 0, 0.1);
@@ -31,7 +31,7 @@ body.dark {
   --text-primary: #E4E6EB;
   --text-secondary: #B0B3B8;
   --text-tertiary: #8A8D91;
-  --accent: #2374E1;
+  --accent: #FA383E;
   --border-primary: #393A3B;
   --border-secondary: #404040;
   --shadow-1: rgba(0, 0, 0, 0.2);

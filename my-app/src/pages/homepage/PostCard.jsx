@@ -214,7 +214,7 @@ const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpda
                             placeholder="Write a comment..."
                             className={styles.commentInput}
                         />
-                        <button type="submit">Post</button>
+                        <button type="submit" className={`${styles.commentPostButtonBase} ${newComment.trim() === '' ? styles.disabledPostButton : styles.commentPostButtonEnabled}`}>Post</button>
                     </form>
                     <div className={styles.commentList}>
                         {comments.map((comment, index) => (

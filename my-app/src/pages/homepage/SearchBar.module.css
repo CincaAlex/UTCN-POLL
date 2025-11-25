@@ -20,12 +20,13 @@
     border: 1px solid var(--border-primary);
     border-radius: 50px; /* Fully rounded */
     background-color: var(--bg-secondary);
-    transition: background-color 0.2s, border-color 0.2s, border-radius 0.1s ease-in-out; /* Add border-radius to transition */
+    transition: all 0.3s ease-in-out; /* Add border-radius to transition */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .searchBar.suggestionsActive {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
 }
 
 .searchBar:focus-within {
@@ -94,10 +95,19 @@
 .suggestionsDropdown {
     position: relative; /* No longer absolute */
     width: 100%; /* Make it the same width as the parent (.searchBar) */
-    background-color: var(--bg-secondary);
     border-top: 1px solid var(--border-primary);
-    border-radius: 0 0 1rem 1rem; /* Rounded bottom corners */
+    border-radius: 0 0 15px 15px; /* Rounded bottom corners */
     overflow: hidden; /* Ensure children conform to rounded corners */
+
+    /* Initial states for transition */
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out; /* Smooth transition */
+}
+
+.suggestionsDropdown.suggestionsVisible {
+    max-height: 500px; /* A value large enough to contain all suggestions */
+    opacity: 1;
 }
 
 .suggestionItem {

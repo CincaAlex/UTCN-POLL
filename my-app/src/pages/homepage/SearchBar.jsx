@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './SearchBar.module.css';
 import { FiSearch } from 'react-icons/fi';
 
@@ -28,7 +28,7 @@ const SearchBar = ({ isHidden, onSortChange, currentSort, searchTerm, onSearchTe
                     />
                 </div>
                 {suggestions && suggestions.length > 0 && (
-                    <div className={styles.suggestionsDropdown}>
+                    <div className={`${styles.suggestionsDropdown} ${styles.suggestionsVisible}`}>
                         {suggestions.map((suggestion, index) => (
                             <div 
                                 key={index} 
