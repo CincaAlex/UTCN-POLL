@@ -36,6 +36,11 @@ public class AuthController {
         if (userOpt.isEmpty()) return ResponseEntity.status(404).body(new ResultError(false, "User not found"));
 
         var user = userOpt.get();
+
+        if (user.isVerified()) {
+            return ResponseEntity.badRequest().body(new ResultError(false, "User is already verified"));
+        }
+
         if (user.getVerificationCode() != null && user.getVerificationCode() == code) {
             user.setVerified(true);
             user.setVerificationCode(null);

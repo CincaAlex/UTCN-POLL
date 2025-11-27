@@ -75,7 +75,7 @@ public class User {
         this.earnedAchievements = earnedAchievements;
     }
 
-    // 🔹 Getter și setter
+    // 🔹 Getter si setter
     public int getId() { return id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
