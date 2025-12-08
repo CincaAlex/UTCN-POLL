@@ -24,6 +24,40 @@ const initialPosts = [
             { name: 'u/elenac', avatar: 'https://i.pravatar.cc/24?u=elenac' },
         ]
     },
+    {
+        id: 2,
+        user: { name: 'u/pollmaster', avatar: 'https://i.pravatar.cc/24?u=pollmaster' },
+        time: '5h',
+        type: 'poll',
+        title: 'Best Programming Language for Backend?',
+        body: 'Which language do you prefer for backend development in 2024?',
+        counts: { likes: 45, comments: 5, shares: 10 },
+        comments: [
+            { user: { name: 'u/dev_one', avatar: 'https://i.pravatar.cc/24?u=dev_one' }, text: 'Node.js is just everywhere now, hard to beat the ecosystem.' },
+            { user: { name: 'u/pythonista', avatar: 'https://i.pravatar.cc/24?u=pythonista' }, text: 'FastAPI has really changed the game for Python backend.' },
+            { user: { name: 'u/java_fan', avatar: 'https://i.pravatar.cc/24?u=java_fan' }, text: 'Spring Boot is still the king for enterprise.' },
+            { user: { name: 'u/gopher', avatar: 'https://i.pravatar.cc/24?u=gopher' }, text: 'Once you go Go, you never go back. Concurrency model is simple.' },
+            { user: { name: 'u/rustacean', avatar: 'https://i.pravatar.cc/24?u=rustacean' }, text: 'Where is Rust?? It should be on this list!' }
+        ],
+        likedBy: [
+            { name: 'u/dev_one', avatar: 'https://i.pravatar.cc/24?u=dev_one', reaction: 'like' },
+            { name: 'u/pythonista', avatar: 'https://i.pravatar.cc/24?u=pythonista', reaction: 'heart' },
+            { name: 'u/java_fan', avatar: 'https://i.pravatar.cc/24?u=java_fan', reaction: 'like' },
+            { name: 'u/gopher', avatar: 'https://i.pravatar.cc/24?u=gopher', reaction: 'haha' },
+            { name: 'u/rustacean', avatar: 'https://i.pravatar.cc/24?u=rustacean', reaction: 'angry' },
+            { name: 'u/js_lover', avatar: 'https://i.pravatar.cc/24?u=js_lover', reaction: 'heart' },
+            { name: 'u/c_sharp_dev', avatar: 'https://i.pravatar.cc/24?u=c_sharp_dev', reaction: 'like' },
+             // In a real app, this list would be fetched from the server and paginated. 
+             // Showing a few examples here.
+        ],
+        options: [
+            { id: 1, text: 'Node.js', votes: 120 },
+            { id: 2, text: 'Python (Django/FastAPI)', votes: 95 },
+            { id: 3, text: 'Java (Spring)', votes: 60 },
+            { id: 4, text: 'Go', votes: 40 }
+        ],
+        hasVoted: false
+    },
     // ... other initial posts
 ];
 
@@ -36,7 +70,7 @@ const Homepage = () => {
 
     const currentUsername = 'u/current_user'; // Hardcoded current user for demonstration
 
-    const handleCreatePost = (newTitle, newBody) => {
+    const handleCreatePost = (newTitle, newBody, type = 'text', options = []) => {
         const newPost = {
             id: posts.length + 1,
             user: { name: currentUsername, avatar: 'https://i.pravatar.cc/40' }, // Use currentUsername
@@ -45,8 +79,19 @@ const Homepage = () => {
             body: newBody,
             counts: { likes: 0, comments: 0, shares: 0 },
             comments: [],
-            likedBy: []
+            likedBy: [],
+            type: type
         };
+
+        if (type === 'poll') {
+            newPost.options = options.map((opt, index) => ({
+                id: index + 1,
+                text: opt,
+                votes: 0
+            }));
+            newPost.hasVoted = false;
+        }
+
         setPosts([newPost, ...posts]);
     };
 

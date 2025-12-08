@@ -16,6 +16,7 @@ const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpda
     const [selectedReaction, setSelectedReaction] = useState(null);
     const [isCommentSectionVisible, setCommentSectionVisible] = useState(false);
     const [isLikesModalOpen, setLikesModalOpen] = useState(false);
+    const [activeReactionTab, setActiveReactionTab] = useState('all'); // State for reaction tabs
     const [isEditing, setIsEditing] = useState(false); // New state for edit mode
     const [editedTitle, setEditedTitle] = useState(title); // State for edited title
     const [editedBody, setEditedBody] = useState(body); // State for edited body
@@ -24,9 +25,58 @@ const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpda
     const [comments, setComments] = useState(initialComments);
     const [counts, setCounts] = useState(initialCounts);
     const [newComment, setNewComment] = useState('');
+    
+    // Poll State
+    const [pollOptions, setPollOptions] = useState(post.options || []);
+    const [hasVoted, setHasVoted] = useState(post.hasVoted || false);
 
     const reactionTimeoutRef = useRef(null);
     const shareTimeoutRef = useRef(null);
+    
+    // Calculate reaction counts for tabs
+    const reactionCounts = likedBy.reduce((acc, user) => {
+        const type = user.reaction || 'like'; // Default to 'like' if undefined
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+    }, { all: likedBy.length });
+
+    // Get unique reaction types present
+    const reactionTypes = ['all', ...new Set(likedBy.map(u => u.reaction || 'like'))];
+
+    const getReactionIcon = (type) => {
+        switch (type) {
+            case 'like': return <AiFillLike className={styles.likeIcon} />;
+            case 'heart': return <FiHeart className={styles.heartIcon} />;
+            case 'haha': return <FaGrin className={styles.hahaIcon} />;
+            case 'sad': return <FaSadTear className={styles.sadIcon} />;
+            case 'angry': return <FaAngry className={styles.angryIcon} />;
+            default: return <AiOutlineLike />;
+        }
+    };
+
+    const handleVote = (optionId) => {
+        if (hasVoted) return;
+
+        const updatedOptions = pollOptions.map(opt => {
+            if (opt.id === optionId) {
+                return { ...opt, votes: opt.votes + 1 };
+            }
+            return opt;
+        });
+
+        setPollOptions(updatedOptions);
+        setHasVoted(true);
+    };
+
+    const getTotalVotes = () => {
+        return pollOptions.reduce((acc, curr) => acc + curr.votes, 0);
+    };
+
+    const getVotePercentage = (votes) => {
+        const total = getTotalVotes();
+        if (total === 0) return 0;
+        return Math.round((votes / total) * 100);
+    };
 
     const handleReaction = (reactionType) => {
         const oldReaction = selectedReaction;
@@ -106,14 +156,43 @@ const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpda
 
     return (
         <>
-            <Modal isOpen={isLikesModalOpen} onClose={() => setLikesModalOpen(false)} title="Likes">
-                <div className={styles.userList}>
-                    {likedBy.map((likeUser, index) => (
-                        <div key={index} className={styles.userListItem}>
-                            <img src={likeUser.avatar} alt="User Avatar" />
-                            <span>{likeUser.name}</span>
-                        </div>
+            <Modal isOpen={isLikesModalOpen} onClose={() => setLikesModalOpen(false)} title="Reactions">
+                <div className={styles.reactionTabs}>
+                    {reactionTypes.map(type => (
+                        <button 
+                            key={type}
+                            className={`${styles.reactionTab} ${activeReactionTab === type ? styles.active : ''}`}
+                            onClick={() => setActiveReactionTab(type)}
+                        >
+                            {type === 'all' ? 'All' : getReactionIcon(type)}
+                            <span className={styles.reactionCount}>{reactionCounts[type]}</span>
+                        </button>
                     ))}
+                </div>
+                <div className={styles.userList}>
+                    {likedBy
+                        .filter(user => activeReactionTab === 'all' || (user.reaction || 'like') === activeReactionTab)
+                        .map((likeUser, index) => (
+                            <div key={index} className={styles.userListItem}>
+                                <div style={{position: 'relative', display: 'flex'}}>
+                                    <img src={likeUser.avatar} alt="User Avatar" />
+                                    <div className={styles.miniReactionIcon} style={{
+                                        position: 'absolute', 
+                                        bottom: -2, 
+                                        right: -4, 
+                                        background: 'var(--bg-secondary)', 
+                                        borderRadius: '50%', 
+                                        padding: 2, 
+                                        display: 'flex', 
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                                    }}>
+                                        {/* Show small icon next to avatar */}
+                                        {React.cloneElement(getReactionIcon(likeUser.reaction || 'like'), { size: 12 })} 
+                                    </div>
+                                </div>
+                                <span style={{marginLeft: '0.75rem'}}>{likeUser.name}</span>
+                            </div>
+                        ))}
                 </div>
             </Modal>
 
@@ -152,6 +231,35 @@ const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpda
                         <>
                             <h3 className={styles.postTitle}>{title}</h3>
                             <p className={styles.postBody}>{body}</p>
+                            
+                            {post.type === 'poll' && (
+                                <div className={styles.pollContainer}>
+                                    {pollOptions.map((option) => {
+                                        const percentage = getVotePercentage(option.votes);
+                                        return (
+                                            <div 
+                                                key={option.id} 
+                                                className={`${styles.pollOption} ${hasVoted ? styles.voted : ''}`}
+                                                onClick={() => handleVote(option.id)}
+                                            >
+                                                {hasVoted && (
+                                                    <div 
+                                                        className={styles.pollProgressBar} 
+                                                        style={{ width: `${percentage}%` }} 
+                                                    />
+                                                )}
+                                                <div className={styles.pollOptionContent}>
+                                                    <span className={styles.pollOptionText}>{option.text}</span>
+                                                    {hasVoted && (
+                                                        <span className={styles.pollOptionPercentage}>{percentage}%</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {hasVoted && <div className={styles.totalVotes}>{getTotalVotes()} votes</div>}
+                                </div>
+                            )}
                         </>
                     )}
                 </div>

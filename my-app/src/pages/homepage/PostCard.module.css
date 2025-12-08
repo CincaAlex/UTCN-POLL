@@ -304,23 +304,80 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem; /* Space for scrollbar */
 }
 
 .userListItem {
     display: flex;
     align-items: center;
     gap: 1rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.userListItem:hover {
+    background-color: var(--bg-tertiary);
 }
 
 .userListItem img {
     width: 40px;
     height: 40px;
     border-radius: 50%;
+    object-fit: cover;
 }
 
 .userListItem span {
     font-weight: 500;
     color: var(--text-primary);
+    flex: 1;
+}
+
+.userReactionIcon {
+    font-size: 1.25rem;
+}
+
+/* Reaction Tabs in Modal */
+.reactionTabs {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    overflow-x: auto; /* Allow horizontal scrolling if many reactions */
+}
+
+.reactionTab {
+    background: none;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.reactionTab:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.reactionTab.active {
+    color: var(--accent);
+    background-color: rgba(207, 31, 35, 0.1);
+}
+
+.reactionCount {
+    font-size: 0.8rem;
+    font-weight: 400;
+    opacity: 0.8;
 }
 
 /* Share Icons Pop-up Styles */
@@ -444,4 +501,68 @@
     font-style: italic;
     color: var(--text-secondary);
     margin-left: 0.25rem;
+}
+
+/* Poll Styles */
+.pollContainer {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.pollOption {
+    position: relative;
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.pollOption:hover:not(.voted) {
+    background-color: var(--bg-tertiary);
+    border-color: var(--accent);
+}
+
+.pollOption.voted {
+    cursor: default;
+    border-color: transparent;
+    background-color: var(--bg-tertiary);
+}
+
+.pollProgressBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: rgba(207, 31, 35, 0.15); /* Accent color with opacity */
+    z-index: 1;
+    transition: width 0.5s ease-out;
+}
+
+.pollOptionContent {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pollOptionText {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.pollOptionPercentage {
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.totalVotes {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-align: right;
+    margin-top: 0.5rem;
 }
