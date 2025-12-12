@@ -12,6 +12,7 @@ import {
   Area
 } from 'recharts';
 import './Profile.css';
+import Confetti from 'react-confetti';
 
 const saveProfileData = (updatedData) => {
   return new Promise(resolve => {
@@ -29,6 +30,23 @@ function DailySpinModal({ onComplete, onClose, theme }) {
   const [rotation, setRotation] = useState(0);
   const [winResult, setWinResult] = useState(null);
 
+  const [windowDimensions, setWindowDimensions] = useState({ 
+      width: window.innerWidth, 
+      height: window.innerHeight 
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const prizes = [
     { label: '100', value: 100, color: '#CF1F23' },    
     { label: '500', value: 500, color: '#1a1a1a' },    
@@ -41,6 +59,7 @@ function DailySpinModal({ onComplete, onClose, theme }) {
   const handleSpin = () => {
     if (isSpinning || winResult) return;
     setIsSpinning(true);
+    setWinResult(null);
     const winnerIndex = Math.floor(Math.random() * prizes.length);
     const segmentAngle = 360 / prizes.length; 
     const winningSegmentCenter = (winnerIndex * segmentAngle) + (segmentAngle / 2);
@@ -62,6 +81,16 @@ function DailySpinModal({ onComplete, onClose, theme }) {
 
   return (
     <div className={`modal-backdrop ${theme}`}>
+      {winResult && (
+        <Confetti
+          width={windowDimensions.width}
+          height={windowDimensions.height}
+          recycle={false} // Only shoot once
+          numberOfPieces={500}
+          gravity={0.15}
+          colors={prizes.map(p => p.color)} // Use prize colors for confetti
+        />
+      )}
       <div className={`modal-panel ${theme} spin-container`}>
         <h2>Daily Lucky Spin</h2>
         <div className="wheel-wrapper">
@@ -162,6 +191,7 @@ function Profile() {
 
   const checkSpinAvailability = () => {
     const nextSpin = getNextSpinTime();
+    //const nextSpin = Date.now();
     const now = Date.now();
     if (now >= nextSpin) {
       setCanSpin(true);

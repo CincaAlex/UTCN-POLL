@@ -5,6 +5,7 @@ import { FiMenu, FiX, FiUser } from 'react-icons/fi';
 import { ThemeContext } from '../../context/ThemeContext';
 import { UserContext } from '../../context/UserContext';
 
+// Avatar component remains unchanged
 const Avatar = ({ src, className, onClick }) => {
     const [hasError, setHasError] = useState(false);
     
@@ -28,15 +29,32 @@ const TopBar = () => {
     const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
     const navigate = useNavigate();
     const { theme, toggleTheme } = useContext(ThemeContext);
-    const { user } = useContext(UserContext);
+    
+    // Destructure the necessary user context elements, including the assumed 'logout' function
+    const { user, logout } = useContext(UserContext);
 
     const handleLogout = () => {
-        console.log('Log out');
+        console.log('Logging out user...');
+        
+        // 1. Clear user data (Assumes UserContext provides a 'logout' function)
+        if (typeof logout === 'function') {
+            logout();
+        } else {
+            // Fallback/Simulated clearing if context is simple
+            console.error("UserContext does not provide a 'logout' function.");
+        }
+        
+        // 2. Close the avatar menu
         setIsAvatarMenuOpen(false);
+        
+        // 3. Navigate to the welcome page
+        navigate('/'); 
     };
 
     const handleAvatarClick = () => {
+        // Navigate to profile and close the dropdown if open
         navigate('/profile');
+        setIsAvatarMenuOpen(false); // Add this line for a better user experience
     };
 
     return (
@@ -49,6 +67,7 @@ const TopBar = () => {
                 <div className={styles.topBarRight}>
                     <div 
                         className={styles.avatarContainer} 
+                        // Using onMouse events for desktop hover
                         onMouseEnter={() => setIsAvatarMenuOpen(true)}
                         onMouseLeave={() => setIsAvatarMenuOpen(false)}
                     >
@@ -62,7 +81,8 @@ const TopBar = () => {
                                 <button onClick={toggleTheme}>
                                     Theme: {theme === 'light' ? 'Dark' : 'Light'} Mode
                                 </button>
-                                <button onClick={handleLogout}>Log out</button>
+                                {/* This button now calls the fully implemented handler */}
+                                <button onClick={handleLogout}>Log out</button> 
                             </div>
                         )}
                     </div>
