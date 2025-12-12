@@ -7,6 +7,7 @@ import Login from './pages/login/Login';
 import Register from './pages/register/Register';
 import Profile from './pages/profile/Profile';
 import UnderConstruction from './pages/under-construction/UnderConstruction';
+import CreatePolls from './pages/create-polls/CreatePolls';
 
 function App() {
   const { theme } = useContext(ThemeContext);
@@ -23,7 +24,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/create-poll" element={<UnderConstruction />} />
+        <Route path="/create-poll" element={<CreatePolls />} />
         <Route path="/dashboard" element={<UnderConstruction />} />
       </Routes>
     </Router>

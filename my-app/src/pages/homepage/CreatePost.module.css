@@ -42,16 +42,12 @@
     padding: 0.5rem 1rem;
     border-radius: 20px;
     transition: all 0.2s;
+    text-decoration: none; /* Add this to style Link component correctly */
 }
 
 .tabButton:hover {
     background-color: var(--bg-tertiary);
     color: var(--text-primary);
-}
-
-.activeTab {
-    background-color: var(--accent);
-    color: white !important;
 }
 
 .createPostInputSection {
@@ -74,85 +70,6 @@
 
 .createPostInput::placeholder {
     color: var(--text-secondary);
-}
-
-/* Poll Styles */
-.pollOptionsContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.pollDescriptionInput {
-    width: 100%;
-    border: none;
-    outline: none;
-    font-size: 1rem;
-    padding: 0.5rem 0;
-    background-color: transparent;
-    margin-bottom: 0.5rem;
-    color: var(--text-primary);
-    font-family: 'Poppins', sans-serif;
-    resize: none;
-    height: auto;
-    min-height: 40px;
-}
-
-.pollOptionRow {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.pollOptionInput {
-    flex: 1;
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    color: var(--text-primary);
-    outline: none;
-}
-
-.pollOptionInput:focus {
-    border-color: var(--accent);
-}
-
-.removeOptionButton {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.25rem;
-}
-
-.removeOptionButton:hover {
-    color: var(--error-red);
-}
-
-.addOptionButton {
-    align-self: flex-start;
-    background: none;
-    border: 1px dashed var(--text-secondary);
-    color: var(--text-secondary);
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    transition: all 0.2s;
-}
-
-.addOptionButton:hover {
-    border-color: var(--accent);
-    color: var(--accent);
 }
 
 .createPostButton {

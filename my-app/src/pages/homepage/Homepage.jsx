@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext'; // Re-adding useTheme import
+import { UserContext } from '../../context/UserContext';
 import TopBar from './TopBar';
 import SearchBar from './SearchBar';
 import CreatePost from './CreatePost';
@@ -63,34 +64,26 @@ const initialPosts = [
 
 const Homepage = () => {
     const { theme } = useTheme(); // Re-adding useTheme hook call
+    const { user } = useContext(UserContext);
     const scrollDirection = useScrollDirection();
     const [posts, setPosts] = useState(initialPosts);
     const [sortOrder, setSortOrder] = useState('newest'); // New state for sorting
     const [searchTerm, setSearchTerm] = useState(''); // New state for search term
 
-    const currentUsername = 'u/current_user'; // Hardcoded current user for demonstration
+    const currentUsername = user?.username || 'Guest';
 
     const handleCreatePost = (newTitle, newBody, type = 'text', options = []) => {
         const newPost = {
             id: posts.length + 1,
-            user: { name: currentUsername, avatar: 'https://i.pravatar.cc/40' }, // Use currentUsername
+            user: { name: currentUsername, avatar: user?.photoUrl || 'https://i.pravatar.cc/40' },
             time: 'Just now',
             title: newTitle,
             body: newBody,
             counts: { likes: 0, comments: 0, shares: 0 },
             comments: [],
             likedBy: [],
-            type: type
+            type: 'text' // Always text for now from this handler
         };
-
-        if (type === 'poll') {
-            newPost.options = options.map((opt, index) => ({
-                id: index + 1,
-                text: opt,
-                votes: 0
-            }));
-            newPost.hasVoted = false;
-        }
 
         setPosts([newPost, ...posts]);
     };

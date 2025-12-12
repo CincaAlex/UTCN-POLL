@@ -100,7 +100,6 @@
     gap: 0.5rem;
 }
 
-/* New styles for reactions */
 .reactionsContainer {
     position: relative;
     display: flex;
@@ -128,61 +127,17 @@
     color: var(--accent);
 }
 
+.likeButton.active {
+    color: var(--accent);
+}
+
 .likeButton > * {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.reactionsPicker {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    margin-bottom: 0.5rem;
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--accent);
-    border-radius: 50px;
-    padding: 0.25rem;
-    display: flex;
-    gap: 0.25rem;
-    box-shadow: 0 2px 8px var(--accent);
-    animation: pop-up 0.2s ease;
-}
-
-.reactionsPicker button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 50%;
-    font-size: 1.5rem;
-    transition: transform 0.1s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.reactionsPicker button:hover {
-    transform: scale(1.2);
-}
-
-@keyframes pop-up {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Reaction-specific colors */
 .likeIcon { color: var(--accent); }
-.heartIcon { color: #e0245e; }
-.hahaIcon { color: #f7b529; }
-.sadIcon { color: #4a90e2; }
-.angryIcon { color: #e0245e; }
 
 /* Comment Section Styles */
 .commentSection {
@@ -267,6 +222,26 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.commentList::-webkit-scrollbar {
+    width: 6px;
+}
+
+.commentList::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.commentList::-webkit-scrollbar-thumb {
+    background-color: var(--border-primary);
+    border-radius: 3px;
+}
+
+.commentList::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-secondary);
 }
 
 .comment {
@@ -333,51 +308,6 @@
     font-weight: 500;
     color: var(--text-primary);
     flex: 1;
-}
-
-.userReactionIcon {
-    font-size: 1.25rem;
-}
-
-/* Reaction Tabs in Modal */
-.reactionTabs {
-    display: flex;
-    gap: 1rem;
-    border-bottom: 1px solid var(--border-primary);
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-    overflow-x: auto; /* Allow horizontal scrolling if many reactions */
-}
-
-.reactionTab {
-    background: none;
-    border: none;
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-
-.reactionTab:hover {
-    background-color: var(--bg-tertiary);
-}
-
-.reactionTab.active {
-    color: var(--accent);
-    background-color: rgba(207, 31, 35, 0.1);
-}
-
-.reactionCount {
-    font-size: 0.8rem;
-    font-weight: 400;
-    opacity: 0.8;
 }
 
 /* Share Icons Pop-up Styles */

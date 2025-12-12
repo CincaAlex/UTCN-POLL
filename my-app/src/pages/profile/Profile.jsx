@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from '../../context/ThemeContext';
+import { UserContext } from '../../context/UserContext';
+import { FiUser } from 'react-icons/fi';
 import { 
   XAxis, 
   YAxis, 
@@ -10,33 +12,6 @@ import {
   Area
 } from 'recharts';
 import './Profile.css';
-
-// --- SIMULATED API CALLS ---
-const fetchGamblerData = () => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({
-        username: 'HighRoller_777',
-        photoUrl: 'https://placehold.co/150x150/2b2d3e/CF1F23?text=HR',
-        tokens: 1450230,
-        friends: 100,
-        pollHistory: [
-          { month: 'Jan', winnings: 4000 },
-          { month: 'Feb', winnings: 3000 },
-          { month: 'Mar', winnings: 5500 },
-          { month: 'Apr', winnings: 4800 },
-          { month: 'May', winnings: 9000 },
-          { month: 'Jun', winnings: 12500 },
-        ],
-        badges: [
-          { name: 'High Roller', symbol: '💎', className: 'badge-gold' },
-          { name: 'On Fire', symbol: '🔥', className: 'badge-red' },
-          { name: 'Poker Shark', symbol: '🦈', className: 'badge-blue' },
-        ]
-      });
-    }, 1000);
-  });
-};
 
 const saveProfileData = (updatedData) => {
   return new Promise(resolve => {
@@ -150,10 +125,25 @@ function EditProfileModal({ formData, onChange, onFileChange, onSave, onCancel, 
   );
 }
 
+const Avatar = ({ src, className, alt = "Player Avatar" }) => {
+  const [hasError, setHasError] = useState(false);
+  
+  if (!src || hasError) {
+      return <FiUser className={className} />;
+  }
+  
+  return (
+      <img 
+          src={src} 
+          alt={alt} 
+          className={className} 
+          onError={() => setHasError(true)} 
+      />
+  );
+};
+
 function Profile() {
-  const [pageLoading, setPageLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
   const [showSpin, setShowSpin] = useState(false);
@@ -161,27 +151,17 @@ function Profile() {
   const [timeLeft, setTimeLeft] = useState("");
 
   const { theme } = useContext(ThemeContext);
+  const { user, updateUser, loading } = useContext(UserContext);
 
   useEffect(() => {
-    const loadProfileData = async () => {
-      try {
-        setPageLoading(true);
-        const data = await fetchGamblerData();
-        setUserData(data);
-        setFormData(data);
-        checkSpinAvailability();
-      } catch (error) {
-        console.error("Failed to fetch gambler data:", error);
-      } finally {
-        setPageLoading(false);
-      }
-    };
-    loadProfileData();
-  }, []);
+    if (user) {
+      setFormData(user);
+      checkSpinAvailability();
+    }
+  }, [user]);
 
   const checkSpinAvailability = () => {
     const nextSpin = getNextSpinTime();
-    //const nextSpin = Date.now();
     const now = Date.now();
     if (now >= nextSpin) {
       setCanSpin(true);
@@ -217,7 +197,7 @@ function Profile() {
     setIsSaving(true);
     try {
       await saveProfileData(formData);
-      setUserData(formData);
+      updateUser(formData);
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to save data:", error);
@@ -228,31 +208,31 @@ function Profile() {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setFormData(userData);
+    setFormData(user);
   };
 
   const handleSpinComplete = async (wonAmount) => {
     localStorage.setItem('lastSpinTime', Date.now().toString());
-    const newData = { ...userData, tokens: userData.tokens + wonAmount };
-    setUserData(newData);
+    const newData = { ...user, tokens: user.tokens + wonAmount };
+    updateUser(newData);
     setFormData(newData);
     checkSpinAvailability();
     await saveProfileData(newData);
   };
 
-  if (pageLoading) return (
+  if (loading) return (
     <div className={`profile-container ${theme}`}>
       <div className="profile-card loading-state">Loading...</div>
     </div>
   );
 
-  if (!userData) return (
+  if (!user) return (
     <div className={`profile-container ${theme}`}>
       <div className="profile-card error-state">Error loading data.</div>
     </div>
   );
 
-  const { friends, tokens, badges, username, photoUrl, pollHistory } = userData;
+  const { friends, tokens, badges, username, photoUrl, pollHistory } = user;
 
   return (
     <div className={`profile-container ${theme}`}>
@@ -261,7 +241,7 @@ function Profile() {
           <button onClick={() => setIsEditing(true)} className={`btn btn-edit ${theme}`}>Edit Profile</button>
         </div>
         <div className="profile-header">
-          <img src={photoUrl} alt="Player Avatar" className="profile-avatar" />
+          <Avatar src={photoUrl} className="profile-avatar" />
           <div className="profile-info">
             <h1 className="username">{username}</h1>
           </div>

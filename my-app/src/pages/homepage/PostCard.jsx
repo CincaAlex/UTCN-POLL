@@ -1,58 +1,38 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import styles from './PostCard.module.css';
-import { FiHeart, FiMessageSquare, FiShare2, FiEdit } from 'react-icons/fi'; // Added FiEdit
-import { FaGrin, FaSadTear, FaAngry, FaInstagram, FaFacebook, FaTwitter, FaWhatsapp } from "react-icons/fa";
+import { FiMessageSquare, FiShare2, FiEdit, FiUser } from 'react-icons/fi';
+import { FaInstagram, FaFacebook, FaTwitter, FaWhatsapp } from "react-icons/fa";
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import Modal from '../../components/Modal/Modal';
+import { UserContext } from '../../context/UserContext';
 
-const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpdatePost and currentUsername props
-    const { id, user, time, title, body, isEdited, comments: initialComments, likedBy, counts: initialCounts } = post; // Destructure isEdited
+const PostCard = ({ post, onUpdatePost, currentUsername }) => {
+    const { id, user: postUser, time, title, body, isEdited, comments: initialComments, likedBy, counts: initialCounts } = post;
+    const { user } = useContext(UserContext);
 
-
-    
     // State for UI interaction
-    const [isReactionsVisible, setReactionsVisible] = useState(false);
     const [isShareIconsVisible, setShareIconsVisible] = useState(false);
-    const [selectedReaction, setSelectedReaction] = useState(null);
     const [isCommentSectionVisible, setCommentSectionVisible] = useState(false);
     const [isLikesModalOpen, setLikesModalOpen] = useState(false);
-    const [activeReactionTab, setActiveReactionTab] = useState('all'); // State for reaction tabs
-    const [isEditing, setIsEditing] = useState(false); // New state for edit mode
-    const [editedTitle, setEditedTitle] = useState(title); // State for edited title
-    const [editedBody, setEditedBody] = useState(body); // State for edited body
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedTitle, setEditedTitle] = useState(title);
+    const [editedBody, setEditedBody] = useState(body);
 
     // State for data
     const [comments, setComments] = useState(initialComments);
-    const [counts, setCounts] = useState(initialCounts);
+    const [counts, setCounts] = useState({
+        ...initialCounts,
+        likes: likedBy ? likedBy.length : 0
+    });
     const [newComment, setNewComment] = useState('');
-    
+    const [currentLikedBy, setCurrentLikedBy] = useState(likedBy); // State for the actual list of users who liked
+    const [isLiked, setIsLiked] = useState(likedBy.some(likeUser => likeUser.name === currentUsername));
+
     // Poll State
     const [pollOptions, setPollOptions] = useState(post.options || []);
     const [hasVoted, setHasVoted] = useState(post.hasVoted || false);
 
-    const reactionTimeoutRef = useRef(null);
     const shareTimeoutRef = useRef(null);
-    
-    // Calculate reaction counts for tabs
-    const reactionCounts = likedBy.reduce((acc, user) => {
-        const type = user.reaction || 'like'; // Default to 'like' if undefined
-        acc[type] = (acc[type] || 0) + 1;
-        return acc;
-    }, { all: likedBy.length });
-
-    // Get unique reaction types present
-    const reactionTypes = ['all', ...new Set(likedBy.map(u => u.reaction || 'like'))];
-
-    const getReactionIcon = (type) => {
-        switch (type) {
-            case 'like': return <AiFillLike className={styles.likeIcon} />;
-            case 'heart': return <FiHeart className={styles.heartIcon} />;
-            case 'haha': return <FaGrin className={styles.hahaIcon} />;
-            case 'sad': return <FaSadTear className={styles.sadIcon} />;
-            case 'angry': return <FaAngry className={styles.angryIcon} />;
-            default: return <AiOutlineLike />;
-        }
-    };
 
     const handleVote = (optionId) => {
         if (hasVoted) return;
@@ -78,18 +58,16 @@ const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpda
         return Math.round((votes / total) * 100);
     };
 
-    const handleReaction = (reactionType) => {
-        const oldReaction = selectedReaction;
-        if (oldReaction === reactionType) {
-            setSelectedReaction(null);
+    const handleLike = () => {
+        if (isLiked) {
+            setIsLiked(false);
             setCounts(prev => ({ ...prev, likes: prev.likes - 1 }));
+            setCurrentLikedBy(prev => prev.filter(u => u.name !== currentUsername));
         } else {
-            setSelectedReaction(reactionType);
-            if (oldReaction === null) {
-                setCounts(prev => ({ ...prev, likes: prev.likes + 1 }));
-            }
+            setIsLiked(true);
+            setCounts(prev => ({ ...prev, likes: prev.likes + 1 }));
+            setCurrentLikedBy(prev => [...prev, { name: currentUsername, avatar: user?.photoUrl }]); // Use user's photoUrl
         }
-        setReactionsVisible(false);
     };
 
     const handleShare = (platform) => {
@@ -102,21 +80,12 @@ const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpda
         e.preventDefault();
         if (newComment.trim() === '') return;
         const commentToAdd = {
-            user: { name: 'u/current_user', avatar: 'https://i.pravatar.cc/24?u=current_user' },
+            user: { name: currentUsername, avatar: user?.photoUrl }, // Use user's photoUrl
             text: newComment,
         };
         setComments(prev => [...prev, commentToAdd]);
         setCounts(prev => ({ ...prev, comments: prev.comments + 1 }));
         setNewComment('');
-    };
-
-    const handleReactionMouseEnter = () => {
-        if (reactionTimeoutRef.current) clearTimeout(reactionTimeoutRef.current);
-        setReactionsVisible(true);
-    };
-
-    const handleReactionMouseLeave = () => {
-        reactionTimeoutRef.current = setTimeout(() => setReactionsVisible(false), 200);
     };
 
     const handleShareMouseEnter = () => {
@@ -133,76 +102,63 @@ const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpda
     };
 
     const handleSaveClick = () => {
-        onUpdatePost(id, editedTitle, editedBody); // Call onUpdatePost with id, new title, new body
+        onUpdatePost(id, editedTitle, editedBody);
         setIsEditing(false);
     };
 
     const handleCancelClick = () => {
         setIsEditing(false);
-        setEditedTitle(title); // Revert to original title
-        setEditedBody(body);   // Revert to original body
+        setEditedTitle(title);
+        setEditedBody(body);
     };
 
-    const ReactionDisplay = () => {
-        switch (selectedReaction) {
-            case 'like': return <><AiFillLike className={styles.likeIcon} /> Like</>;
-            case 'heart': return <><FiHeart className={styles.heartIcon} /> Love</>;
-            case 'haha': return <><FaGrin className={styles.hahaIcon} /> Haha</>;
-            case 'sad': return <><FaSadTear className={styles.sadIcon} /> Sad</>;
-            case 'angry': return <><FaAngry className={styles.angryIcon} /> Angry</>;
-            default: return <><AiOutlineLike /> Like</>;
+    const Avatar = ({ src, alt, className }) => {
+        const [hasError, setHasError] = useState(false);
+        
+        if (!src || hasError) {
+            return <FiUser className={className} />;
         }
+        
+        return (
+            <img 
+                src={src} 
+                alt={alt} 
+                className={className} 
+                onError={() => setHasError(true)} 
+            />
+        );
+    };
+
+    const getAvatarSrc = (avatarUrl, isCurrentUser) => {
+        return isCurrentUser && user?.photoUrl ? user.photoUrl : avatarUrl;
     };
 
     return (
         <>
-            <Modal isOpen={isLikesModalOpen} onClose={() => setLikesModalOpen(false)} title="Reactions">
-                <div className={styles.reactionTabs}>
-                    {reactionTypes.map(type => (
-                        <button 
-                            key={type}
-                            className={`${styles.reactionTab} ${activeReactionTab === type ? styles.active : ''}`}
-                            onClick={() => setActiveReactionTab(type)}
-                        >
-                            {type === 'all' ? 'All' : getReactionIcon(type)}
-                            <span className={styles.reactionCount}>{reactionCounts[type]}</span>
-                        </button>
-                    ))}
-                </div>
+            <Modal isOpen={isLikesModalOpen} onClose={() => setLikesModalOpen(false)} title="Likes">
                 <div className={styles.userList}>
-                    {likedBy
-                        .filter(user => activeReactionTab === 'all' || (user.reaction || 'like') === activeReactionTab)
-                        .map((likeUser, index) => (
-                            <div key={index} className={styles.userListItem}>
-                                <div style={{position: 'relative', display: 'flex'}}>
-                                    <img src={likeUser.avatar} alt="User Avatar" />
-                                    <div className={styles.miniReactionIcon} style={{
-                                        position: 'absolute', 
-                                        bottom: -2, 
-                                        right: -4, 
-                                        background: 'var(--bg-secondary)', 
-                                        borderRadius: '50%', 
-                                        padding: 2, 
-                                        display: 'flex', 
-                                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-                                    }}>
-                                        {/* Show small icon next to avatar */}
-                                        {React.cloneElement(getReactionIcon(likeUser.reaction || 'like'), { size: 12 })} 
-                                    </div>
-                                </div>
-                                <span style={{marginLeft: '0.75rem'}}>{likeUser.name}</span>
-                            </div>
-                        ))}
+                    {currentLikedBy.map((likeUser, index) => (
+                        <div key={index} className={styles.userListItem}>
+                            <Avatar 
+                                src={getAvatarSrc(likeUser.avatar, likeUser.name === user?.username)} 
+                                alt="User Avatar" 
+                            />
+                            <span style={{marginLeft: '0.75rem'}}>{likeUser.name}</span>
+                        </div>
+                    ))}
                 </div>
             </Modal>
 
             <div className={styles.postCard}>
                 <div className={styles.postHeader}>
-                    <img src={user.avatar} alt="User Avatar" className={styles.avatar} />
-                    <span className={styles.username}>{user.name}</span>
-                    <span className={styles.postTime}>⋅ {time} {isEdited && <span className={styles.editedIndicator}>(edited)</span>}</span> {/* Conditionally render (edited) */}
-                    {/* Only show edit button if current user is the author and not already editing */}
-                    {!isEditing && user.name === currentUsername && (
+                    <Avatar 
+                        src={getAvatarSrc(postUser.avatar, postUser.name === user?.username)} 
+                        alt="User Avatar" 
+                        className={styles.avatar} 
+                    />
+                    <span className={styles.username}>{postUser.name}</span>
+                    <span className={styles.postTime}>⋅ {time} {isEdited && <span className={styles.editedIndicator}>(edited)</span>}</span>
+                    {!isEditing && postUser.name === currentUsername && (
                         <button onClick={handleEditClick} className={styles.editButton}>
                             <FiEdit /> Edit
                         </button>
@@ -265,28 +221,18 @@ const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpda
                 </div>
 
                 <div className={styles.postStats}>
-                    <span onClick={() => likedBy.length > 0 && setLikesModalOpen(true)}>{counts.likes} Likes</span>
+                    <span onClick={() => currentLikedBy.length > 0 && setLikesModalOpen(true)}>{counts.likes} Likes</span>
                     <span onClick={() => setCommentSectionVisible(!isCommentSectionVisible)}>{counts.comments} Comments</span>
                     <span>{counts.shares} Shares</span>
                 </div>
 
                 <div className={styles.postFooter}>
-                    <div 
-                        className={styles.reactionsContainer}
-                        onMouseEnter={handleReactionMouseEnter}
-                        onMouseLeave={handleReactionMouseLeave}
-                    >
-                        {isReactionsVisible && (
-                            <div className={styles.reactionsPicker}>
-                                <button onClick={() => handleReaction('like')} aria-label="Like"><AiFillLike className={styles.likeIcon} /></button>
-                                <button onClick={() => handleReaction('heart')} aria-label="Heart"><FiHeart className={styles.heartIcon} /></button>
-                                <button onClick={() => handleReaction('haha')} aria-label="Haha"><FaGrin className={styles.hahaIcon} /></button>
-                                <button onClick={() => handleReaction('sad')} aria-label="Sad"><FaSadTear className={styles.sadIcon} /></button>
-                                <button onClick={() => handleReaction('angry')} aria-label="Angry"><FaAngry className={styles.angryIcon} /></button>
-                            </div>
-                        )}
-                        <button className={styles.likeButton} onClick={() => handleReaction(selectedReaction || 'like')}>
-                            <ReactionDisplay />
+                    <div className={styles.reactionsContainer}>
+                        <button 
+                            className={`${styles.likeButton} ${isLiked ? styles.active : ''}`} 
+                            onClick={handleLike}
+                        >
+                            {isLiked ? <AiFillLike className={styles.likeIcon} /> : <AiOutlineLike />} Like
                         </button>
                     </div>
                     <div className={styles.actionButtons}>
@@ -327,7 +273,11 @@ const PostCard = ({ post, onUpdatePost, currentUsername }) => { // Accept onUpda
                     <div className={styles.commentList}>
                         {comments.map((comment, index) => (
                             <div key={index} className={styles.comment}>
-                                <img src={comment.user.avatar} alt="User Avatar" className={styles.commentAvatar} />
+                                <Avatar 
+                                    src={getAvatarSrc(comment.user.avatar, comment.user.name === user?.username)} 
+                                    alt="User Avatar" 
+                                    className={styles.commentAvatar} 
+                                />
                                 <div className={styles.commentBody}>
                                     <span className={styles.commentUser}>{comment.user.name}</span>
                                     <p className={styles.commentText}>{comment.text}</p>

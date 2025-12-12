@@ -1,42 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import styles from './CreatePost.module.css';
-import { FiType, FiBarChart2, FiPlus, FiX } from 'react-icons/fi';
+import { FiType, FiUser } from 'react-icons/fi'; // Removed FiBarChart2, FiPlus, FiX
+import { UserContext } from '../../context/UserContext';
+import { Link } from 'react-router-dom'; // Import Link
+
+const Avatar = ({ src, className }) => {
+    const [hasError, setHasError] = useState(false);
+    
+    if (!src || hasError) {
+        return <FiUser className={className} />;
+    }
+    
+    return (
+        <img 
+            src={src} 
+            alt="User Avatar" 
+            className={className} 
+            onError={() => setHasError(true)} 
+        />
+    );
+};
 
 const CreatePost = ({ onCreatePost }) => {
+    const { user } = useContext(UserContext);
     const [postTitle, setPostTitle] = useState('');
     const [postText, setPostText] = useState('');
-    const [postType, setPostType] = useState('text'); // 'text' or 'poll'
-    const [pollOptions, setPollOptions] = useState(['', '']);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const handleAddOption = () => {
-        setPollOptions([...pollOptions, '']);
-    };
-
-    const handleOptionChange = (index, value) => {
-        const newOptions = [...pollOptions];
-        newOptions[index] = value;
-        setPollOptions(newOptions);
-    };
-
-    const handleRemoveOption = (index) => {
-        if (pollOptions.length > 2) {
-            const newOptions = pollOptions.filter((_, i) => i !== index);
-            setPollOptions(newOptions);
-        }
-    };
-
     const handlePost = async () => {
         if (!postTitle.trim() && !postText.trim()) return;
-
-        if (postType === 'poll') {
-            const validOptions = pollOptions.filter(opt => opt.trim() !== '');
-            if (validOptions.length < 2) {
-                setError('Please provide at least two valid options for the poll.');
-                return;
-            }
-        }
 
         setIsLoading(true);
         setError(null);
@@ -45,13 +38,10 @@ const CreatePost = ({ onCreatePost }) => {
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 1500));
             
-            const optionsToSubmit = postType === 'poll' ? pollOptions.filter(opt => opt.trim() !== '') : [];
-            onCreatePost(postTitle, postText, postType, optionsToSubmit);
+            onCreatePost(postTitle, postText, 'text', []); // Always 'text' type
 
             setPostTitle('');
             setPostText('');
-            setPollOptions(['', '']);
-            setPostType('text'); // Reset to text post
         } catch (err) {
             setError('Failed to post. Please try again.');
             console.error('Error submitting post:', err);
@@ -63,20 +53,17 @@ const CreatePost = ({ onCreatePost }) => {
     return (
         <div className={styles.createPostContainer}>
             <div className={styles.topSection}>
-                <img src="https://i.pravatar.cc/40" alt="User Avatar" className={styles.avatar} />
+                <Avatar src={user?.photoUrl} className={styles.avatar} />
                 <div className={styles.tabs}>
                     <button 
-                        className={`${styles.tabButton} ${postType === 'text' ? styles.activeTab : ''}`}
-                        onClick={() => setPostType('text')}
+                        className={`${styles.tabButton} ${styles.activeTab}`} // Always active for text posts
                     >
                         <FiType /> Text
                     </button>
-                    <button 
-                        className={`${styles.tabButton} ${postType === 'poll' ? styles.activeTab : ''}`}
-                        onClick={() => setPostType('poll')}
-                    >
-                        <FiBarChart2 /> Poll
-                    </button>
+                    {/* Replaced Poll tab with a Link to the Create Polls page */}
+                    <Link to="/create-poll" className={styles.tabButton}> 
+                        <FiType /> Poll
+                    </Link>
                 </div>
             </div>
 
@@ -85,57 +72,23 @@ const CreatePost = ({ onCreatePost }) => {
                     type="text"
                     value={postTitle}
                     onChange={(e) => setPostTitle(e.target.value)}
-                    placeholder={postType === 'poll' ? "Ask a question..." : "Title"}
+                    placeholder="Title" // Simplified placeholder
                     className={styles.createPostInput}
                     disabled={isLoading}
                 />
                 
-                {postType === 'text' && (
-                    <input
-                        type="text"
-                        value={postText}
-                        onChange={(e) => setPostText(e.target.value)}
-                        placeholder="What's on your mind?"
-                        className={styles.createPostInput}
-                        disabled={isLoading}
-                    />
-                )}
-
-                {postType === 'poll' && (
-                    <div className={styles.pollOptionsContainer}>
-                        <textarea
-                            value={postText}
-                            onChange={(e) => setPostText(e.target.value)}
-                            placeholder="Add some context (optional)..."
-                            className={styles.pollDescriptionInput}
-                            disabled={isLoading}
-                        />
-                        {pollOptions.map((option, index) => (
-                            <div key={index} className={styles.pollOptionRow}>
-                                <input
-                                    type="text"
-                                    value={option}
-                                    onChange={(e) => handleOptionChange(index, e.target.value)}
-                                    placeholder={`Option ${index + 1}`}
-                                    className={styles.pollOptionInput}
-                                    disabled={isLoading}
-                                />
-                                {pollOptions.length > 2 && (
-                                    <button onClick={() => handleRemoveOption(index)} className={styles.removeOptionButton}>
-                                        <FiX />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                        <button onClick={handleAddOption} className={styles.addOptionButton} disabled={isLoading}>
-                            <FiPlus /> Add Option
-                        </button>
-                    </div>
-                )}
+                <input // Always render text input
+                    type="text"
+                    value={postText}
+                    onChange={(e) => setPostText(e.target.value)}
+                    placeholder="What's on your mind?"
+                    className={styles.createPostInput}
+                    disabled={isLoading}
+                />
 
                 <button
                     onClick={handlePost}
-                    disabled={(!postTitle.trim() && !postText.trim() && postType === 'text') || (postType === 'poll' && !postTitle.trim()) || isLoading}
+                    disabled={(!postTitle.trim() && !postText.trim()) || isLoading} // Simplified disabled logic
                     className={styles.createPostButton}
                 >
                     {isLoading ? 'Posting...' : 'Post'}
