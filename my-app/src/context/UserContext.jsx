@@ -25,8 +25,10 @@ export const UserProvider = ({ children }) => {
             const fetchedData = await new Promise(resolve => {
                 setTimeout(() => {
                     resolve({
-                        username: 'HighRoller_777',
-                        photoUrl: 'https://placehold.co/150x150/2b2d3e/CF1F23?text=HR',
+                        username: 'Secretariat AC', // Changed to match one of the poll authors
+                        name: 'Secretariat AC', // Added name field
+                        role: 'admin', 
+                        photoUrl: 'https://i.pravatar.cc/150?u=secretariat', // Changed avatar
                         tokens: 1450230,
                         friends: 100,
                         pollHistory: [

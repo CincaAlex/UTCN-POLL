@@ -1,11 +1,18 @@
 import React from 'react';
-import PostCard from './PostCard';
+import PostCard from '../../components/PostCard/PostCard'; // Updated import path
 
-const Feed = ({ posts, onUpdatePost, currentUsername }) => { // Accept currentUsername prop
+const Feed = ({ posts, onUpdatePost, onDeletePost, onDeleteComment, currentUser }) => {
     return (
         <div className="feed">
             {posts.map(post => (
-                <PostCard key={post.id} post={post} onUpdatePost={onUpdatePost} currentUsername={currentUsername} />
+                <PostCard 
+                    key={post.id} 
+                    post={post} 
+                    onUpdatePost={onUpdatePost} 
+                    onDeletePost={onDeletePost} 
+                    onDeleteComment={onDeleteComment} // Pass it down
+                    currentUser={currentUser} 
+                />
             ))}
         </div>
     );

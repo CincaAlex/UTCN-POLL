@@ -1,0 +1,362 @@
+/* ... Existing styles ... */
+
+.pageWrapper {
+    padding-top: 80px;
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Card Styling */
+.pollCard {
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px var(--shadow-1);
+    border: 1px solid var(--border-secondary);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.pollHeader {
+    display: flex;
+    flex-direction: column; /* Stack author and question */
+    margin-bottom: 0.5rem;
+}
+
+.headerContent {
+    width: 100%;
+}
+
+/* Author Section Styles */
+.authorSection {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.authorAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    border: 1px solid var(--border-secondary);
+}
+
+.authorInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.authorName {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+/* Status wrapper moved inside author info for compact look, or separate line */
+.statusWrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.statusDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #10B981; /* Green */
+}
+
+.statusDot.ended {
+    background-color: var(--error-red); /* Red */
+}
+
+.pollLabel {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.pollQuestion {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+}
+
+/* Meta Badges Section */
+.pollMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-weight: 500;
+    border: 1px solid var(--border-secondary);
+}
+
+.badgeIcon {
+    font-size: 0.9rem;
+}
+
+/* Options List Container */
+.pollOptions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+/* --- STATE 1: VOTING VIEW (Radio Buttons) --- */
+.pollOption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background-color: var(--bg-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    position: relative;
+    z-index: 1;
+    transition: border-color 0.2s;
+}
+
+.pollOption:hover {
+    filter: brightness(0.98);
+}
+
+.pollOption.selected {
+    border-color: var(--accent);
+    background-color: var(--bg-tertiary);
+}
+
+/* Multi-select styling (Checkbox style instead of Radio) */
+.checkboxBox {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px; /* Square for checkbox */
+    border: 2px solid var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.checkboxBox.active {
+    border-color: var(--accent);
+    background-color: var(--accent);
+}
+
+.checkboxInner {
+    color: white;
+    font-size: 14px;
+    display: flex;
+}
+
+/* Radio styling (Circle) */
+.radioCircle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.radioCircle.active {
+    border-color: var(--accent);
+}
+
+.radioInner {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    transform: scale(0);
+    transition: transform 0.2s;
+}
+
+.radioCircle.active .radioInner {
+    transform: scale(1);
+}
+
+.optionLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 2;
+}
+
+.optionText {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.voteStats {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* --- STATE 2: RESULTS VIEW (Progress Bars) --- */
+.pollOption.resultMode {
+    cursor: default;
+    background-color: var(--bg-primary); 
+    border: none;
+    overflow: hidden; 
+    padding: 0; 
+    height: 48px; 
+    position: relative;
+}
+
+.pollOption.resultMode:hover {
+    filter: none;
+}
+
+.resultProgressBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: var(--text-secondary); 
+    opacity: 0.3;
+    z-index: 0;
+    transition: width 0.6s ease-out;
+}
+
+.pollOption.winner .resultProgressBar {
+    background-color: var(--accent); 
+    opacity: 0.8; 
+}
+
+.resultContent {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0 1rem;
+    height: 100%;
+}
+
+.winnerIcon {
+    margin-right: 8px;
+    color: var(--bg-primary); 
+    display: flex;
+    align-items: center;
+}
+
+/* Footer & Actions */
+.pollFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.voteButton {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.voteButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-1);
+}
+
+.voteButton:disabled {
+    opacity: 0.5;
+    cursor: default;
+    background-color: var(--bg-tertiary); 
+    color: var(--text-secondary);
+    box-shadow: none;
+    transform: none;
+}
+
+.votedText {
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-left: 1rem;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Bottom Progress Line & Time */
+.bottomMeta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 1rem;
+}
+
+.timeLeftText {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: right;
+    font-weight: 500;
+}
+
+.bottomProgressContainer {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    background-color: var(--border-secondary);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.bottomProgressBar {
+    height: 100%;
+    background-color: var(--accent);
+    border-radius: 0 4px 4px 0;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}

@@ -142,3 +142,9 @@
         justify-content: center;
     }
 }
+
+.logoLink {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}

@@ -1,5 +1,5 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { useTheme } from '../../context/ThemeContext'; // Re-adding useTheme import
+import React, { useState, useContext } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 import { UserContext } from '../../context/UserContext';
 import TopBar from './TopBar';
 import SearchBar from './SearchBar';
@@ -8,13 +8,14 @@ import Feed from './Feed';
 import styles from './Homepage.module.css';
 import { useScrollDirection } from '../../hooks/useScrollDirection';
 
-const initialPosts = [
+// Initial posts data for homepage (no polls here, they are in ViewPolls)
+const initialHomepagePosts = [
     {
         id: 1,
         user: { name: 'u/andreip', avatar: 'https://i.pravatar.cc/24?u=andreip' },
         time: '3h',
-        title: 'First time using the new platform!',
-        body: 'Just wanted to say this new UTCNHub platform looks amazing. Great job to the team who built this. Looking forward to creating some polls.',
+        title: 'Welcome to UTCNHub!',
+        body: 'Just wanted to say this new UTCNHub platform looks amazing. Great job to the team who built this. Looking forward to connecting with students and faculty.',
         counts: { likes: 25, comments: 2, shares: 2 },
         comments: [
             { user: { name: 'u/vladm', avatar: 'https://i.pravatar.cc/24?u=vladm' }, text: 'I agree, it looks great!' },
@@ -27,62 +28,43 @@ const initialPosts = [
     },
     {
         id: 2,
-        user: { name: 'u/pollmaster', avatar: 'https://i.pravatar.cc/24?u=pollmaster' },
+        user: { name: 'Secretariat AC', avatar: 'https://i.pravatar.cc/24?u=secretariat' },
         time: '5h',
-        type: 'poll',
-        title: 'Best Programming Language for Backend?',
-        body: 'Which language do you prefer for backend development in 2024?',
+        title: 'Upcoming Exam Session Schedule',
+        body: 'Heads up to all students! The preliminary exam session schedule for the summer semester has been posted on Moodle. Please check it and report any conflicts by next Friday.',
         counts: { likes: 45, comments: 5, shares: 10 },
         comments: [
-            { user: { name: 'u/dev_one', avatar: 'https://i.pravatar.cc/24?u=dev_one' }, text: 'Node.js is just everywhere now, hard to beat the ecosystem.' },
-            { user: { name: 'u/pythonista', avatar: 'https://i.pravatar.cc/24?u=pythonista' }, text: 'FastAPI has really changed the game for Python backend.' },
-            { user: { name: 'u/java_fan', avatar: 'https://i.pravatar.cc/24?u=java_fan' }, text: 'Spring Boot is still the king for enterprise.' },
-            { user: { name: 'u/gopher', avatar: 'https://i.pravatar.cc/24?u=gopher' }, text: 'Once you go Go, you never go back. Concurrency model is simple.' },
-            { user: { name: 'u/rustacean', avatar: 'https://i.pravatar.cc/24?u=rustacean' }, text: 'Where is Rust?? It should be on this list!' }
+            { user: { name: 'u/dev_one', avatar: 'https://i.pravatar.cc/24?u=dev_one' }, text: 'Thanks for the heads up!' },
+            { user: { name: 'u/student_rep', avatar: 'https://i.pravatar.cc/24?u=student_rep' }, text: 'We will forward all conflict reports from students in our group.' },
         ],
         likedBy: [
             { name: 'u/dev_one', avatar: 'https://i.pravatar.cc/24?u=dev_one', reaction: 'like' },
-            { name: 'u/pythonista', avatar: 'https://i.pravatar.cc/24?u=pythonista', reaction: 'heart' },
-            { name: 'u/java_fan', avatar: 'https://i.pravatar.cc/24?u=java_fan', reaction: 'like' },
-            { name: 'u/gopher', avatar: 'https://i.pravatar.cc/24?u=gopher', reaction: 'haha' },
-            { name: 'u/rustacean', avatar: 'https://i.pravatar.cc/24?u=rustacean', reaction: 'angry' },
-            { name: 'u/js_lover', avatar: 'https://i.pravatar.cc/24?u=js_lover', reaction: 'heart' },
-            { name: 'u/c_sharp_dev', avatar: 'https://i.pravatar.cc/24?u=c_sharp_dev', reaction: 'like' },
-             // In a real app, this list would be fetched from the server and paginated. 
-             // Showing a few examples here.
-        ],
-        options: [
-            { id: 1, text: 'Node.js', votes: 120 },
-            { id: 2, text: 'Python (Django/FastAPI)', votes: 95 },
-            { id: 3, text: 'Java (Spring)', votes: 60 },
-            { id: 4, text: 'Go', votes: 40 }
-        ],
-        hasVoted: false
-    },
-    // ... other initial posts
+            { name: 'u/student_rep', avatar: 'https://i.pravatar.cc/24?u=student_rep', reaction: 'heart' },
+        ]
+    }
 ];
 
 const Homepage = () => {
-    const { theme } = useTheme(); // Re-adding useTheme hook call
+    const { theme } = useTheme();
     const { user } = useContext(UserContext);
     const scrollDirection = useScrollDirection();
-    const [posts, setPosts] = useState(initialPosts);
-    const [sortOrder, setSortOrder] = useState('newest'); // New state for sorting
-    const [searchTerm, setSearchTerm] = useState(''); // New state for search term
+    const [posts, setPosts] = useState(initialHomepagePosts); // Use specific homepage posts
+    const [sortOrder, setSortOrder] = useState('newest');
+    const [searchTerm, setSearchTerm] = useState('');
 
-    const currentUsername = user?.username || 'Guest';
+    const currentUser = user ? { name: user.name || user.username, role: user.role } : null;
 
-    const handleCreatePost = (newTitle, newBody, type = 'text', options = []) => {
+    const handleCreatePost = (newTitle, newBody) => {
         const newPost = {
-            id: posts.length + 1,
-            user: { name: currentUsername, avatar: user?.photoUrl || 'https://i.pravatar.cc/40' },
+            id: Date.now(), // Unique ID
+            user: { name: currentUser.name, avatar: user?.photoUrl || 'https://i.pravatar.cc/40' },
             time: 'Just now',
             title: newTitle,
             body: newBody,
             counts: { likes: 0, comments: 0, shares: 0 },
             comments: [],
             likedBy: [],
-            type: 'text' // Always text for now from this handler
+            type: 'text'
         };
 
         setPosts([newPost, ...posts]);
@@ -96,6 +78,24 @@ const Homepage = () => {
         );
     };
 
+    const handleDeletePost = (id) => {
+        if (window.confirm("Are you sure you want to delete this post?")) {
+            setPosts(prevPosts => prevPosts.filter(post => post.id !== id));
+        }
+    };
+
+    const handleDeleteComment = (postId, commentIndex) => {
+        if (window.confirm("Delete this comment?")) {
+            setPosts(prevPosts => prevPosts.map(post => {
+                if (post.id === postId) {
+                    const updatedComments = post.comments.filter((_, index) => index !== commentIndex);
+                    return { ...post, comments: updatedComments, counts: { ...post.counts, comments: updatedComments.length } };
+                }
+                return post;
+            }));
+        }
+    };
+
     const handleSortChange = (newSortOrder) => {
         setSortOrder(newSortOrder);
     };
@@ -104,7 +104,6 @@ const Homepage = () => {
         setSearchTerm(newSearchTerm);
     };
 
-    // Suggestions logic
     const suggestions = searchTerm
         ? posts
             .map(post => {
@@ -117,13 +116,12 @@ const Homepage = () => {
                 return null;
             })
             .filter(suggestion => suggestion !== null)
-            // Remove duplicates
             .filter((suggestion, index, self) =>
                 index === self.findIndex((s) => (
                     s.id === suggestion.id && s.text === suggestion.text
                 ))
             )
-            .slice(0, 5) // Limit to 5 suggestions
+            .slice(0, 5)
         : [];
 
     const filteredPosts = posts.filter(post => 
@@ -132,20 +130,20 @@ const Homepage = () => {
         post.user.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const sortedPosts = [...filteredPosts].sort((a, b) => { // Sort the filtered posts
+    const sortedPosts = [...filteredPosts].sort((a, b) => {
         switch (sortOrder) {
             case 'oldest':
-                return a.id - b.id; // Assuming id reflects creation order
+                return a.id - b.id;
             case 'top':
                 return b.counts.likes - a.counts.likes;
             case 'newest':
             default:
-                return b.id - a.id; // Assuming id reflects creation order
+                return b.id - a.id;
         }
     });
 
     return (
-        <div className={`${styles.homepage} ${styles[theme]}`}> {/* Re-added theme class */}
+        <div className={`${styles.homepage} ${styles[theme]}`}>
             <TopBar />
             <SearchBar 
                 isHidden={scrollDirection === 'down'} 
@@ -153,11 +151,17 @@ const Homepage = () => {
                 currentSort={sortOrder} 
                 searchTerm={searchTerm}
                 onSearchTermChange={handleSearchTermChange}
-                suggestions={suggestions} // Pass suggestions
+                suggestions={suggestions}
             />
             <main className={styles.mainContainer}>
                 <CreatePost onCreatePost={handleCreatePost} />
-                <Feed posts={sortedPosts} onUpdatePost={handleUpdatePost} currentUsername={currentUsername} /> {/* Pass sorted and filtered posts */}
+                <Feed 
+                    posts={sortedPosts} 
+                    onUpdatePost={handleUpdatePost} 
+                    onDeletePost={handleDeletePost} 
+                    onDeleteComment={handleDeleteComment} // Pass new handler
+                    currentUser={currentUser} 
+                />
             </main>
         </div>
     );

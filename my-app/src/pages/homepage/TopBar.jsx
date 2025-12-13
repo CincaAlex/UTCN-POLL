@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './TopBar.module.css';
 import { FiMenu, FiX, FiUser } from 'react-icons/fi';
 import { ThemeContext } from '../../context/ThemeContext';
@@ -60,9 +60,15 @@ const TopBar = () => {
     return (
         <header className={styles.topBar}>
             <div className={styles.topBarContent}>
-                <div className={styles.logo}>UTCNHub</div>
+                <Link to="/homepage" className={styles.logoLink}>
+                    <div className={styles.logo}>UTCNHub</div>
+                </Link>
                 <nav className={`${styles.navLinks} ${isMenuOpen ? styles.open : ''}`}>
-                    <button onClick={() => navigate('/create-poll')}>Create poll</button>
+                    {user?.role === 'admin' ? (
+                        <button onClick={() => navigate('/create-poll')}>Create poll</button>
+                    ) : (
+                        <button onClick={() => navigate('/view-polls')}>View polls</button>
+                    )}
                 </nav>
                 <div className={styles.topBarRight}>
                     <div 

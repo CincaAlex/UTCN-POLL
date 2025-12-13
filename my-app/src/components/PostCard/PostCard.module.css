@@ -1,0 +1,211 @@
+/* ... Existing styles ... */
+
+.postCard {
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px var(--shadow-1);
+    border: 1px solid var(--border-secondary);
+    position: relative;
+    transition: all 0.2s ease-in-out;
+}
+
+.postCard:hover {
+    box-shadow: 0 4px 8px var(--shadow-1);
+    transform: translateY(-2px);
+}
+
+.postHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    position: relative; /* For positioning action buttons */
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.userName {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.postTime {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.postTitle {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    padding-right: 50px; /* Space for actions */
+}
+
+.postBody {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.postFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-secondary);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.postActions {
+    display: flex;
+    gap: 1rem;
+}
+
+.actionButton {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.actionButton:hover {
+    color: var(--accent);
+}
+
+.actionButton.liked {
+    color: var(--accent);
+}
+
+.likeCount {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Comments Section */
+.commentsSection {
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-secondary);
+    padding-top: 1rem;
+}
+
+.commentsHeader {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.comment {
+    display: flex;
+    margin-bottom: 0.75rem;
+    group: relative; /* For hover effects if needed later */
+}
+
+.commentAvatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.commentContent {
+    background-color: var(--bg-primary);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    flex-grow: 1;
+    position: relative;
+}
+
+.commentHeaderRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.commentAuthor {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.deleteCommentBtn {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+
+.deleteCommentBtn:hover {
+    color: var(--error-red);
+}
+
+.commentText {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+/* Edit/Delete Actions for Post */
+.postActionsMenu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+.postActionButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.postActionButton:hover {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.postActionButton.delete:hover {
+    color: var(--error-red);
+    background-color: rgba(250, 56, 62, 0.1);
+}
