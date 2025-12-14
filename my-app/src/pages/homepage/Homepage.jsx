@@ -8,39 +8,35 @@ import Feed from './Feed';
 import styles from './Homepage.module.css';
 import { useScrollDirection } from '../../hooks/useScrollDirection';
 
-// Initial posts data for homepage (no polls here, they are in ViewPolls)
+// NOTE ON DATA: To ensure comment deletion works, the 'name' field in comments 
+// must exactly match the logged-in user's 'username' (e.g., 'HighRoller_777').
+
 const initialHomepagePosts = [
     {
         id: 1,
         user: { name: 'u/andreip', avatar: 'https://i.pravatar.cc/24?u=andreip' },
         time: '3h',
         title: 'Welcome to UTCNHub!',
-        body: 'Just wanted to say this new UTCNHub platform looks amazing. Great job to the team who built this. Looking forward to connecting with students and faculty.',
-        counts: { likes: 25, comments: 2, shares: 2 },
+        body: 'Just wanted to say this new UTCNHub platform looks amazing. Great job to the team who built this.',
+        counts: { likes: 25, comments: 3, shares: 2 },
         comments: [
             { user: { name: 'u/vladm', avatar: 'https://i.pravatar.cc/24?u=vladm' }, text: 'I agree, it looks great!' },
             { user: { name: 'u/elenac', avatar: 'https://i.pravatar.cc/24?u=elenac' }, text: 'Can\'t wait to see the new features.' },
+            { user: { name: 'HighRoller_777', avatar: 'https://i.pravatar.cc/24?u=HighRoller_777' }, text: 'This is my comment on someone else\'s post.' }, // TEST COMMENT by current user
         ],
-        likedBy: [
-            { name: 'u/vladm', avatar: 'https://i.pravatar.cc/24?u=vladm' },
-            { name: 'u/elenac', avatar: 'https://i.pravatar.cc/24?u=elenac' },
-        ]
+        likedBy: []
     },
     {
         id: 2,
         user: { name: 'Secretariat AC', avatar: 'https://i.pravatar.cc/24?u=secretariat' },
         time: '5h',
         title: 'Upcoming Exam Session Schedule',
-        body: 'Heads up to all students! The preliminary exam session schedule for the summer semester has been posted on Moodle. Please check it and report any conflicts by next Friday.',
-        counts: { likes: 45, comments: 5, shares: 10 },
+        body: 'Heads up to all students! The preliminary exam session schedule has been posted on Moodle. Check it by next Friday.',
+        counts: { likes: 45, comments: 1, shares: 10 },
         comments: [
-            { user: { name: 'u/dev_one', avatar: 'https://i.pravatar.cc/24?u=dev_one' }, text: 'Thanks for the heads up!' },
-            { user: { name: 'u/student_rep', avatar: 'https://i.pravatar.cc/24?u=student_rep' }, text: 'We will forward all conflict reports from students in our group.' },
+            { user: { name: 'HighRoller_777', avatar: 'https://i.pravatar.cc/24?u=HighRoller_777' }, text: 'This is my comment on the admin\'s post.' }, // TEST COMMENT by current user
         ],
-        likedBy: [
-            { name: 'u/dev_one', avatar: 'https://i.pravatar.cc/24?u=dev_one', reaction: 'like' },
-            { name: 'u/student_rep', avatar: 'https://i.pravatar.cc/24?u=student_rep', reaction: 'heart' },
-        ]
+        likedBy: []
     }
 ];
 
@@ -48,16 +44,17 @@ const Homepage = () => {
     const { theme } = useTheme();
     const { user } = useContext(UserContext);
     const scrollDirection = useScrollDirection();
-    const [posts, setPosts] = useState(initialHomepagePosts); // Use specific homepage posts
+    const [posts, setPosts] = useState(initialHomepagePosts);
     const [sortOrder, setSortOrder] = useState('newest');
     const [searchTerm, setSearchTerm] = useState('');
 
-    const currentUser = user ? { name: user.name || user.username, role: user.role } : null;
+    // Use username as the primary identifier for permission checks
+    const currentUsername = user?.username; 
 
     const handleCreatePost = (newTitle, newBody) => {
         const newPost = {
-            id: Date.now(), // Unique ID
-            user: { name: currentUser.name, avatar: user?.photoUrl || 'https://i.pravatar.cc/40' },
+            id: Date.now(),
+            user: { name: currentUsername, avatar: user?.photoUrl || 'https://i.pravatar.cc/40' },
             time: 'Just now',
             title: newTitle,
             body: newBody,
@@ -84,17 +81,26 @@ const Homepage = () => {
         }
     };
 
+    // --- CORRECTED DELETE COMMENT HANDLER ---
     const handleDeleteComment = (postId, commentIndex) => {
-        if (window.confirm("Delete this comment?")) {
-            setPosts(prevPosts => prevPosts.map(post => {
-                if (post.id === postId) {
-                    const updatedComments = post.comments.filter((_, index) => index !== commentIndex);
-                    return { ...post, comments: updatedComments, counts: { ...post.counts, comments: updatedComments.length } };
-                }
-                return post;
-            }));
-        }
+        // NOTE: The PostCard component handles the window.confirm prompt and local state update.
+        // This function handles the global state update.
+        setPosts(prevPosts => prevPosts.map(post => {
+            if (post.id === postId) {
+                // Filter out the comment at the specified index
+                const updatedComments = post.comments.filter((_, index) => index !== commentIndex);
+                
+                return { 
+                    ...post, 
+                    comments: updatedComments, 
+                    // Update comment count
+                    counts: { ...post.counts, comments: updatedComments.length } 
+                };
+            }
+            return post;
+        }));
     };
+    // ----------------------------------------
 
     const handleSortChange = (newSortOrder) => {
         setSortOrder(newSortOrder);
@@ -104,9 +110,11 @@ const Homepage = () => {
         setSearchTerm(newSearchTerm);
     };
 
+    // --- Search/Filter/Sort Logic ---
     const suggestions = searchTerm
         ? posts
             .map(post => {
+                // Simplified filtering for suggestions
                 if (post.title.toLowerCase().includes(searchTerm.toLowerCase())) {
                     return { type: 'Post', text: post.title, id: post.id };
                 }
@@ -117,9 +125,7 @@ const Homepage = () => {
             })
             .filter(suggestion => suggestion !== null)
             .filter((suggestion, index, self) =>
-                index === self.findIndex((s) => (
-                    s.id === suggestion.id && s.text === suggestion.text
-                ))
+                index === self.findIndex((s) => (s.id === suggestion.id && s.text === suggestion.text))
             )
             .slice(0, 5)
         : [];
@@ -159,8 +165,9 @@ const Homepage = () => {
                     posts={sortedPosts} 
                     onUpdatePost={handleUpdatePost} 
                     onDeletePost={handleDeletePost} 
-                    onDeleteComment={handleDeleteComment} // Pass new handler
-                    currentUser={currentUser} 
+                    onDeleteComment={handleDeleteComment} // Pass handler down
+                    // Pass the unique identifier for permission checks
+                    currentUser={currentUsername} 
                 />
             </main>
         </div>

@@ -2,66 +2,71 @@ import React, { createContext, useState, useEffect } from 'react';
 
 export const UserContext = createContext();
 
+// Function to generate consistent simulated user data
+const generateMockUserData = (role) => {
+    const isAdmin = role === 'admin';
+    return {
+        // NOTE: Ensure this username matches the mock data used in Homepage.jsx for testing deletion!
+        username: isAdmin ? 'Secretariat AC' : 'HighRoller_777', 
+        name: isAdmin ? 'Secretariat AC' : 'HighRoller_777',
+        role: role,
+        photoUrl: isAdmin ? 'https://i.pravatar.cc/150?u=secretariat' : 'https://placehold.co/150x150/2b2d3e/CF1F23?text=HR',
+        tokens: 1450230,
+        friends: 100,
+        pollHistory: [
+            { month: 'Jan', winnings: 4000 },
+            { month: 'Feb', winnings: 3000 },
+            { month: 'Mar', winnings: 5500 },
+            { month: 'Apr', winnings: 4800 },
+            { month: 'May', winnings: 9000 },
+            { month: 'Jun', winnings: 12500 },
+        ],
+        badges: [
+            { name: 'High Roller', symbol: '💎', className: 'badge-gold' },
+            { name: 'On Fire', symbol: '🔥', className: 'badge-red' },
+            { name: 'Poker Shark', symbol: '🦈', className: 'badge-blue' },
+        ]
+    };
+};
+
+// Function to check localStorage and set initial state
+const loadInitialUserDataAndSetState = async (setUser, setLoading) => {
+    setLoading(true);
+    const storedUser = localStorage.getItem('currentUser');
+    
+    if (storedUser) {
+        let parsedUser = JSON.parse(storedUser);
+        
+        parsedUser.role = parsedUser.role || 'user'; 
+
+        if (!parsedUser.photoUrl) {
+           parsedUser.photoUrl = 'https://placehold.co/150x150/2b2d3e/CF1F23?text=HR';
+           localStorage.setItem('currentUser', JSON.stringify(parsedUser));
+        }
+        
+        setUser(parsedUser);
+        setLoading(false);
+    } else {
+        // No user in storage, set initial unauthenticated state
+        setUser(null);
+        setLoading(false);
+    }
+};
+
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    
-    // Function to simulate fetching/loading initial user data
-    const loadInitialUserData = async () => {
-        setLoading(true);
-        // 1. Try to load user from localStorage
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-            let parsedUser = JSON.parse(storedUser);
-            // ... (rest of your photoUrl check logic)
-            if (!parsedUser.photoUrl) {
-               parsedUser.photoUrl = 'https://placehold.co/150x150/2b2d3e/CF1F23?text=HR';
-               localStorage.setItem('currentUser', JSON.stringify(parsedUser));
-            }
-            setUser(parsedUser);
-            setLoading(false);
-        } else {
-            // 2. If not in localStorage, simulate initial fetch (the "login" data)
-            const fetchedData = await new Promise(resolve => {
-                setTimeout(() => {
-                    resolve({
-                        username: 'Secretariat AC', // Changed to match one of the poll authors
-                        name: 'Secretariat AC', // Added name field
-                        role: 'admin', 
-                        photoUrl: 'https://i.pravatar.cc/150?u=secretariat', // Changed avatar
-                        tokens: 1450230,
-                        friends: 100,
-                        pollHistory: [
-                            { month: 'Jan', winnings: 4000 },
-                            { month: 'Feb', winnings: 3000 },
-                            { month: 'Mar', winnings: 5500 },
-                            { month: 'Apr', winnings: 4800 },
-                            { month: 'May', winnings: 9000 },
-                            { month: 'Jun', winnings: 12500 },
-                        ],
-                        badges: [
-                            { name: 'High Roller', symbol: '💎', className: 'badge-gold' },
-                            { name: 'On Fire', symbol: '🔥', className: 'badge-red' },
-                            { name: 'Poker Shark', symbol: '🦈', className: 'badge-blue' },
-                        ]
-                    });
-                }, 1000);
-            });
-            setUser(fetchedData);
-            localStorage.setItem('currentUser', JSON.stringify(fetchedData)); // Save initial fetched data
-            setLoading(false);
-        }
-    };
-    
-    // *** NEW LOGIN FUNCTION ***
-    const login = () => {
-        return loadInitialUserData(); // Simply re-run the fetching logic
-    };
 
-    // Existing useEffect logic
-    useEffect(() => {
-        loadInitialUserData();
-    }, []);
+    const login = (role = 'user') => {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                const newUserData = generateMockUserData(role);
+                setUser(newUserData);
+                localStorage.setItem('currentUser', JSON.stringify(newUserData));
+                resolve(newUserData);
+            }, 1000); // Simulate login latency
+        });
+    };
 
     const updateUser = (newData) => {
         setUser(newData);
@@ -74,8 +79,12 @@ export const UserProvider = ({ children }) => {
         setLoading(false);
     };
 
+    useEffect(() => {
+        // Fix for react-hooks/exhaustive-deps warning
+        loadInitialUserDataAndSetState(setUser, setLoading);
+    }, []); 
+
     return (
-        // *** EXPOSE LOGIN IN THE VALUE PROP ***
         <UserContext.Provider value={{ user, updateUser, loading, logout, login }}>
             {children}
         </UserContext.Provider>

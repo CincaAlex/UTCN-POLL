@@ -6,7 +6,6 @@ import Homepage from './pages/homepage/Homepage';
 import Login from './pages/login/Login';
 import Register from './pages/register/Register';
 import Profile from './pages/profile/Profile';
-import UnderConstruction from './pages/under-construction/UnderConstruction';
 import CreatePolls from './pages/create-polls/CreatePolls';
 import ViewPolls from './pages/view-polls/ViewPolls';
 
@@ -27,7 +26,6 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/create-poll" element={<CreatePolls />} />
         <Route path="/view-polls" element={<ViewPolls />} />
-        <Route path="/dashboard" element={<UnderConstruction />} />
       </Routes>
     </Router>
   );

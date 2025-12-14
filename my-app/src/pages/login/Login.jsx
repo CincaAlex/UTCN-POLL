@@ -3,9 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import './Login.css';
 
+// 1. DEFINE ADMIN EMAILS
+// In a real application, this list would come from a secure API endpoint.
+const ADMIN_EMAILS = [
+    'admin@utcn.ro',
+    'admin@campus.utcluj.ro',
+    'another.admin@utcn.ro',
+];
+
 function Login() {
   const navigate = useNavigate();
-  // Access the login function from UserContext
   const { login } = useContext(UserContext);
   
   const [formData, setFormData] = useState({
@@ -15,6 +22,7 @@ function Login() {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -44,20 +52,26 @@ function Login() {
     } else {
       setErrors({});
       setIsSubmitting(true);
-      console.log('Data sent:', formData);
       
+      // *** 2. DETERMINE USER ROLE BASED ON EMAIL ***
+      const enteredEmail = formData.email.toLowerCase();
+      const userRole = ADMIN_EMAILS.includes(enteredEmail) ? 'admin' : 'user';
+
       try {
-        // 1. Simulate API call/Login action
-        await login(); 
+        // In a real app, you would send formData to the API. 
+        // Here, we simulate success and pass the determined role.
+        
+        // 1. Simulate API call/Login action and pass the role
+        await login(userRole); 
         
         // 2. Navigate to the desired page after successful login
+        // You might want to navigate to a different page based on the role here!
         navigate('/homepage');
         
       } catch (error) {
-        // In a real app, handle API errors here
+        // This catch block handles errors thrown by the simulated `login` function
         console.error("Login failed:", error);
-        // Set a general error state if login fails
-        setErrors(prev => ({ ...prev, general: 'Login failed. Please try again.' }));
+        setErrors(prev => ({ ...prev, general: 'Login failed. Please check your credentials.' }));
       } finally {
         setIsSubmitting(false);
       }

@@ -1,186 +1,153 @@
-/* ... Existing styles ... */
+/* ======================================= */
+/* 1. BASE POST CARD & HEADER */
+/* ======================================= */
 
 .postCard {
     background-color: var(--bg-secondary);
-    border-radius: 12px;
+    border: 1px solid var(--accent);
+    border-radius: 16px;
     padding: 1.25rem;
     margin-bottom: 1rem;
-    box-shadow: 0 2px 4px var(--shadow-1);
-    border: 1px solid var(--border-secondary);
-    position: relative;
-    transition: all 0.2s ease-in-out;
-}
-
-.postCard:hover {
-    box-shadow: 0 4px 8px var(--shadow-1);
-    transform: translateY(-2px);
+    box-shadow: 0 0px 0px var(--accent);
+    position: relative; /* Needed for postActionsMenu absolute positioning */
 }
 
 .postHeader {
     display: flex;
     align-items: center;
     margin-bottom: 0.75rem;
-    position: relative; /* For positioning action buttons */
-}
-
-.avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 0.75rem;
-    object-fit: cover;
-    border: 2px solid var(--accent);
-}
-
-.userInfo {
-    display: flex;
-    flex-direction: column;
-}
-
-.userName {
-    font-weight: 600;
-    color: var(--text-primary);
-    font-size: 0.95rem;
-}
-
-.postTime {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: var(--text-secondary);
 }
 
-.postTitle {
-    font-size: 1.15rem;
-    font-weight: 700;
+.avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    border: 1px solid var(--accent);
+}
+
+.username {
+    font-weight: 500;
     color: var(--text-primary);
+}
+
+.postTime {
+    color: var(--text-secondary);
+    margin-left: 0.5rem; /* Space between username and time */
+}
+
+.editedIndicator {
+    font-size: 0.75rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-left: 0.25rem;
+}
+
+.postContent {
     margin-bottom: 0.5rem;
-    line-height: 1.4;
-    padding-right: 50px; /* Space for actions */
+}
+
+.postTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
 }
 
 .postBody {
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: var(--text-primary);
     line-height: 1.5;
-    margin-bottom: 1rem;
+}
+
+/* ======================================= */
+/* 2. POST STATS & FOOTER ACTIONS */
+/* ======================================= */
+
+.postStats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.postStats span {
+    cursor: pointer;
+}
+
+.postStats span:hover {
+    text-decoration: underline;
+    color: var(--accent);
 }
 
 .postFooter {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid var(--border-secondary);
-    padding-top: 0.75rem;
-    margin-top: 0.75rem;
+    padding-top: 0.5rem;
 }
 
-.postActions {
-    display: flex;
-    gap: 1rem;
-}
-
-.actionButton {
+/* Base button styles */
+.actionButtons button, .likeButton {
     background: none;
     border: none;
-    color: var(--text-secondary);
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+    font-size: 0.875rem;
     font-weight: 500;
-    transition: color 0.2s ease;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Poppins', sans-serif;
 }
 
-.actionButton:hover {
+.actionButtons button:hover, .likeButton:hover {
+    background-color: rgba(207, 31, 35, 0.1);
     color: var(--accent);
 }
 
-.actionButton.liked {
-    color: var(--accent);
-}
-
-.likeCount {
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-/* Comments Section */
-.commentsSection {
-    margin-top: 1rem;
-    border-top: 1px solid var(--border-secondary);
-    padding-top: 1rem;
-}
-
-.commentsHeader {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.75rem;
-}
-
-.comment {
+.actionButtons {
     display: flex;
-    margin-bottom: 0.75rem;
-    group: relative; /* For hover effects if needed later */
+    gap: 0.5rem;
 }
 
-.commentAvatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    margin-right: 0.5rem;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-
-.commentContent {
-    background-color: var(--bg-primary);
-    border-radius: 12px;
-    padding: 0.75rem 1rem;
-    flex-grow: 1;
+.reactionsContainer {
     position: relative;
-}
-
-.commentHeaderRow {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.25rem;
 }
 
-.commentAuthor {
-    font-weight: 600;
-    color: var(--text-primary);
-    font-size: 0.9rem;
+.likeButton {
+    text-transform: capitalize;
 }
 
-.deleteCommentBtn {
-    background: none;
-    border: none;
-    color: var(--text-tertiary);
-    cursor: pointer;
-    font-size: 0.8rem;
-    padding: 2px;
+.likeButton.active {
+    color: var(--accent);
+}
+
+.likeButton > * {
     display: flex;
     align-items: center;
-    transition: color 0.2s;
+    gap: 0.5rem;
 }
 
-.deleteCommentBtn:hover {
-    color: var(--error-red);
-}
+.likeIcon { color: var(--accent); }
 
-.commentText {
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    line-height: 1.4;
-}
+/* ======================================= */
+/* 3. POST MANAGEMENT & EDITING */
+/* ======================================= */
 
-/* Edit/Delete Actions for Post */
+/* --- Post Management Menu (Admin/Owner Edit/Delete buttons) --- */
 .postActionsMenu {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 0.75rem;
+    right: 1.25rem;
     display: flex;
     gap: 0.5rem;
     z-index: 10;
@@ -201,11 +168,317 @@
 }
 
 .postActionButton:hover {
-    background-color: var(--bg-primary);
+    background-color: var(--bg-tertiary);
     color: var(--text-primary);
 }
 
 .postActionButton.delete:hover {
-    color: var(--error-red);
-    background-color: rgba(250, 56, 62, 0.1);
+    color: var(--accent);
+    background-color: rgba(207, 31, 35, 0.1);
+}
+
+/* --- Editing Inputs --- */
+.editTitleInput,
+.editBodyTextarea {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border-primary);
+    border-radius: 0.375rem;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-family: 'Poppins', sans-serif;
+    resize: vertical;
+}
+
+.editTitleInput {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.editBodyTextarea {
+    font-size: 1rem;
+    line-height: 1.5;
+    min-height: 50px;
+}
+
+.editActions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+.editActions button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.editActions button:first-child { /* Save button */
+    background-color: var(--accent);
+    color: white;
+    border: none;
+}
+
+.editActions button:first-child:hover {
+    filter: brightness(0.9);
+}
+
+.editActions button:last-child { /* Cancel button */
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-primary);
+}
+
+.editActions button:last-child:hover {
+    background-color: var(--border-primary);
+}
+
+/* ======================================= */
+/* 4. SHARE ICONS POP-UP */
+/* ======================================= */
+
+.shareContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.shareIconsPicker {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 0.5rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 50px;
+    padding: 0.25rem;
+    display: flex;
+    gap: 0.25rem;
+    box-shadow: 0 2px 8px var(--shadow-1);
+    animation: pop-up 0.2s ease;
+}
+
+.shareIconsPicker button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    transition: transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.shareIconsPicker button:hover {
+    transform: scale(1.2);
+    color: var(--accent);
+}
+
+/* ======================================= */
+/* 5. COMMENT SECTION & FORM */
+/* ======================================= */
+
+.commentSection {
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-primary);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}
+
+.commentSection.visible {
+    max-height: 1000px; /* Sufficient height for smooth transition */
+}
+
+.commentForm {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.commentInput {
+    width: 100%;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+}
+
+.commentInput:focus {
+    border-color: var(--accent);
+}
+
+.commentPostButtonBase {
+    align-self: flex-end;
+    border-radius: 50px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: none;
+    border: 2px solid var(--accent);
+}
+
+.commentPostButtonEnabled {
+    background-color: var(--bg-secondary);
+    color: var(--accent);
+}
+
+.commentPostButtonEnabled:hover {
+    background-color: var(--accent);
+    color: white;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 15px var(--accent);
+    filter: brightness(1.1);
+}
+
+.disabledPostButton {
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 2px solid var(--accent);
+}
+
+/* ======================================= */
+/* 6. COMMENT LIST & INDIVIDUAL COMMENTS */
+/* ======================================= */
+
+.commentList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.commentList::-webkit-scrollbar {
+    width: 6px;
+}
+
+.commentList::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.commentList::-webkit-scrollbar-thumb {
+    background-color: var(--border-primary);
+    border-radius: 3px;
+}
+
+.commentList::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-secondary);
+}
+
+.comment {
+    display: flex;
+    gap: 0.75rem;
+    position: relative; /* Crucial for positioning the delete button */
+}
+
+.commentAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.commentBody {
+    position: relative;
+    background-color: var(--bg-tertiary);
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    width: fit-content;
+    max-width: calc(100% - 30px);
+}
+
+.commentUser {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.commentText {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+/* --- Comment Delete Button (Owner/Admin) --- */
+.deleteCommentBtn {
+    position: absolute;
+    top: -5px; /* Adjust vertical placement */
+    right: -25px; /* Adjust horizontal placement */
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 3px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s, background-color 0.2s, opacity 0.2s;
+    opacity: 0; /* Hidden by default */
+}
+
+/* Show the delete button when hovering over the whole comment item */
+.comment:hover .deleteCommentBtn {
+    opacity: 1;
+}
+
+.deleteCommentBtn:hover {
+    color: var(--accent);
+    background-color: rgba(207, 31, 35, 0.1);
+}
+
+/* ======================================= */
+/* 7. MODAL USER LIST STYLES */
+/* ======================================= */
+
+.userList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.userListItem {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.userListItem:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.userListItem img, .userListItem .FiUser {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.userListItem span {
+    font-weight: 500;
+    color: var(--text-primary);
+    flex: 1;
 }
