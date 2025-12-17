@@ -2,17 +2,22 @@ import React, { createContext, useState, useEffect } from 'react';
 
 export const UserContext = createContext();
 
-// Function to generate consistent simulated user data
+// Generate mock user
 const generateMockUserData = (role) => {
     const isAdmin = role === 'admin';
+
     return {
-        // NOTE: Ensure this username matches the mock data used in Homepage.jsx for testing deletion!
-        username: isAdmin ? 'Secretariat AC' : 'HighRoller_777', 
+        username: isAdmin ? 'Secretariat AC' : 'HighRoller_777',
         name: isAdmin ? 'Secretariat AC' : 'HighRoller_777',
-        role: role,
-        photoUrl: isAdmin ? 'https://i.pravatar.cc/150?u=secretariat' : 'https://placehold.co/150x150/2b2d3e/CF1F23?text=HR',
+        role,
+        photoUrl: isAdmin
+            ? 'https://i.pravatar.cc/150?u=secretariat'
+            : 'https://placehold.co/150x150/2b2d3e/CF1F23?text=HR',
         tokens: 1450230,
         friends: 100,
+
+        votedPolls: [], // 🔥 NEW
+
         pollHistory: [
             { month: 'Jan', winnings: 4000 },
             { month: 'Feb', winnings: 3000 },
@@ -21,6 +26,7 @@ const generateMockUserData = (role) => {
             { month: 'May', winnings: 9000 },
             { month: 'Jun', winnings: 12500 },
         ],
+
         badges: [
             { name: 'High Roller', symbol: '💎', className: 'badge-gold' },
             { name: 'On Fire', symbol: '🔥', className: 'badge-red' },
@@ -29,28 +35,22 @@ const generateMockUserData = (role) => {
     };
 };
 
-// Function to check localStorage and set initial state
+// Load user from storage
 const loadInitialUserDataAndSetState = async (setUser, setLoading) => {
     setLoading(true);
     const storedUser = localStorage.getItem('currentUser');
-    
-    if (storedUser) {
-        let parsedUser = JSON.parse(storedUser);
-        
-        parsedUser.role = parsedUser.role || 'user'; 
 
-        if (!parsedUser.photoUrl) {
-           parsedUser.photoUrl = 'https://placehold.co/150x150/2b2d3e/CF1F23?text=HR';
-           localStorage.setItem('currentUser', JSON.stringify(parsedUser));
-        }
-        
+    if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        parsedUser.role = parsedUser.role || 'user';
+        parsedUser.votedPolls = parsedUser.votedPolls || [];
+
         setUser(parsedUser);
-        setLoading(false);
     } else {
-        // No user in storage, set initial unauthenticated state
         setUser(null);
-        setLoading(false);
     }
+
+    setLoading(false);
 };
 
 export const UserProvider = ({ children }) => {
@@ -60,17 +60,46 @@ export const UserProvider = ({ children }) => {
     const login = (role = 'user') => {
         return new Promise(resolve => {
             setTimeout(() => {
-                const newUserData = generateMockUserData(role);
-                setUser(newUserData);
-                localStorage.setItem('currentUser', JSON.stringify(newUserData));
-                resolve(newUserData);
-            }, 1000); // Simulate login latency
+                const newUser = generateMockUserData(role);
+                setUser(newUser);
+                localStorage.setItem('currentUser', JSON.stringify(newUser));
+                resolve(newUser);
+            }, 1000);
         });
     };
 
     const updateUser = (newData) => {
         setUser(newData);
         localStorage.setItem('currentUser', JSON.stringify(newData));
+    };
+
+    const addPollBet = ({ pollId, optionIds, betAmount }) => {
+        if (!user) return;
+
+        // Prevent double voting
+        const alreadyVoted = user.votedPolls.some(p => p.pollId === pollId);
+        if (alreadyVoted) return;
+
+        if (user.tokens < betAmount) {
+            throw new Error('Not enough tokens');
+        }
+
+        const updatedUser = {
+            ...user,
+            tokens: user.tokens - betAmount,
+            votedPolls: [
+                ...user.votedPolls,
+                {
+                    pollId,
+                    optionIds,
+                    betAmount,
+                    votedAt: new Date().toISOString()
+                }
+            ]
+        };
+
+        setUser(updatedUser);
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
     };
 
     const logout = () => {
@@ -80,12 +109,20 @@ export const UserProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        // Fix for react-hooks/exhaustive-deps warning
         loadInitialUserDataAndSetState(setUser, setLoading);
-    }, []); 
+    }, []);
 
     return (
-        <UserContext.Provider value={{ user, updateUser, loading, logout, login }}>
+        <UserContext.Provider
+            value={{
+                user,
+                loading,
+                login,
+                logout,
+                updateUser,
+                addPollBet
+            }}
+        >
             {children}
         </UserContext.Provider>
     );

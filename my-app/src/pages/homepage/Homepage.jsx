@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useLayoutEffect, useCallback, useRef } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { UserContext } from '../../context/UserContext';
 import TopBar from './TopBar';
@@ -7,34 +7,35 @@ import CreatePost from './CreatePost';
 import Feed from './Feed';
 import styles from './Homepage.module.css';
 import { useScrollDirection } from '../../hooks/useScrollDirection';
+import { useNavigate } from 'react-router-dom';
+// Importăm componenta independentă
+import PostAccessAuth from '../../components/PostAccessAuth/PostAccessAuth';
 
-// NOTE ON DATA: To ensure comment deletion works, the 'name' field in comments 
-// must exactly match the logged-in user's 'username' (e.g., 'HighRoller_777').
-
+// --- MOCK DATA ---
 const initialHomepagePosts = [
     {
         id: 1,
         user: { name: 'u/andreip', avatar: 'https://i.pravatar.cc/24?u=andreip' },
-        time: '3h',
+        time: new Date(new Date().getTime() - 3 * 3600 * 1000),
         title: 'Welcome to UTCNHub!',
-        body: 'Just wanted to say this new UTCNHub platform looks amazing. Great job to the team who built this.',
+        body: 'Just wanted to say this new UTCNHub platform looks amazing...',
         counts: { likes: 25, comments: 3, shares: 2 },
         comments: [
             { user: { name: 'u/vladm', avatar: 'https://i.pravatar.cc/24?u=vladm' }, text: 'I agree, it looks great!' },
-            { user: { name: 'u/elenac', avatar: 'https://i.pravatar.cc/24?u=elenac' }, text: 'Can\'t wait to see the new features.' },
-            { user: { name: 'HighRoller_777', avatar: 'https://i.pravatar.cc/24?u=HighRoller_777' }, text: 'This is my comment on someone else\'s post.' }, // TEST COMMENT by current user
+            { user: { name: 'u/elenac', avatar: 'https://i.pravatar.cc/24?u=elenac' }, text: "Can't wait to see the new features." },
+            { user: { name: 'HighRoller_777', avatar: 'https://i.pravatar.cc/24?u=HighRoller_777' }, text: "This is my comment on someone else's post." },
         ],
         likedBy: []
     },
     {
         id: 2,
         user: { name: 'Secretariat AC', avatar: 'https://i.pravatar.cc/24?u=secretariat' },
-        time: '5h',
+        time: new Date(new Date().getTime() - 5 * 3600 * 1000),
         title: 'Upcoming Exam Session Schedule',
-        body: 'Heads up to all students! The preliminary exam session schedule has been posted on Moodle. Check it by next Friday.',
+        body: 'Heads up to all students! The preliminary exam session schedule has been posted on Moodle...',
         counts: { likes: 45, comments: 1, shares: 10 },
         comments: [
-            { user: { name: 'HighRoller_777', avatar: 'https://i.pravatar.cc/24?u=HighRoller_777' }, text: 'This is my comment on the admin\'s post.' }, // TEST COMMENT by current user
+            { user: { name: 'HighRoller_777', avatar: 'https://i.pravatar.cc/24?u=HighRoller_777' }, text: "This is my comment on the admin's post." },
         ],
         likedBy: []
     }
@@ -44,18 +45,81 @@ const Homepage = () => {
     const { theme } = useTheme();
     const { user } = useContext(UserContext);
     const scrollDirection = useScrollDirection();
+
     const [posts, setPosts] = useState(initialHomepagePosts);
     const [sortOrder, setSortOrder] = useState('newest');
     const [searchTerm, setSearchTerm] = useState('');
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [pendingPostHash, setPendingPostHash] = useState(null);
 
-    // Use username as the primary identifier for permission checks
-    const currentUsername = user?.username; 
+    const hasCaptured = useRef(false);
+    
+    const currentUsername = user?.username;
 
+    const navigate = useNavigate();
+
+    // Scroll to a post if hash exists
+    const handleScrollToPost = useCallback(() => {
+        const hash = window.location.hash; // ex: #post-1
+        if (hash && hash.startsWith('#post-')) {
+            if (!user) return;
+
+            const postId = hash.replace('#post-', '');
+            const targetId = `#scroll-${postId}`;
+
+            setTimeout(() => {
+                const element = document.querySelector(targetId);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    window.history.replaceState(null, '', window.location.pathname);
+                }
+            }, 800); 
+        }
+    }, [user]);
+
+    useLayoutEffect(() => {
+        if (hasCaptured.current) return;
+
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#post-')) {
+            hasCaptured.current = true;
+            setPendingPostHash(hash);
+
+            // ȘTERGEM hash-ul din URL IMEDIAT. 
+            // Aceasta este singura cale de a opri browserul sau alte componente să-l vadă.
+            window.history.replaceState(null, '', window.location.pathname);
+
+            if (!user) {
+                setIsLoginModalOpen(true);
+            }
+        }
+    }, [user]);
+    // --- Modal Handlers ---
+    const handleLoginSuccess = () => {
+        setIsLoginModalOpen(false);
+        if (pendingPostHash) {
+            window.location.hash = pendingPostHash;
+            handleScrollToPost();
+            setPendingPostHash(null);
+        }
+    };
+
+    const handleLoginModalClose = () => {
+        setIsLoginModalOpen(false);
+        if (pendingPostHash) {
+            // Deoarece am salvat hash-ul în pendingPostHash, 
+            // redirecționarea va funcționa chiar dacă URL-ul actual e curat.
+            navigate('/access-denied', { replace: true });
+            setPendingPostHash(null);
+        }
+    };
+
+    // --- Post CRUD handlers ---
     const handleCreatePost = (newTitle, newBody) => {
         const newPost = {
             id: Date.now(),
             user: { name: currentUsername, avatar: user?.photoUrl || 'https://i.pravatar.cc/40' },
-            time: 'Just now',
+            time: new Date(),
             title: newTitle,
             body: newBody,
             counts: { likes: 0, comments: 0, shares: 0 },
@@ -63,72 +127,32 @@ const Homepage = () => {
             likedBy: [],
             type: 'text'
         };
-
         setPosts([newPost, ...posts]);
     };
 
     const handleUpdatePost = (id, newTitle, newBody) => {
-        setPosts(prevPosts =>
-            prevPosts.map(post =>
-                post.id === id ? { ...post, title: newTitle, body: newBody, isEdited: true } : post
-            )
-        );
+        setPosts(prev => prev.map(post => post.id === id ? { ...post, title: newTitle, body: newBody, isEdited: true } : post));
     };
 
     const handleDeletePost = (id) => {
         if (window.confirm("Are you sure you want to delete this post?")) {
-            setPosts(prevPosts => prevPosts.filter(post => post.id !== id));
+            setPosts(prev => prev.filter(post => post.id !== id));
         }
     };
 
-    // --- CORRECTED DELETE COMMENT HANDLER ---
     const handleDeleteComment = (postId, commentIndex) => {
-        // NOTE: The PostCard component handles the window.confirm prompt and local state update.
-        // This function handles the global state update.
-        setPosts(prevPosts => prevPosts.map(post => {
+        setPosts(prev => prev.map(post => {
             if (post.id === postId) {
-                // Filter out the comment at the specified index
                 const updatedComments = post.comments.filter((_, index) => index !== commentIndex);
-                
-                return { 
-                    ...post, 
-                    comments: updatedComments, 
-                    // Update comment count
-                    counts: { ...post.counts, comments: updatedComments.length } 
-                };
+                return { ...post, comments: updatedComments, counts: { ...post.counts, comments: updatedComments.length } };
             }
             return post;
         }));
     };
-    // ----------------------------------------
 
-    const handleSortChange = (newSortOrder) => {
-        setSortOrder(newSortOrder);
-    };
-
-    const handleSearchTermChange = (newSearchTerm) => {
-        setSearchTerm(newSearchTerm);
-    };
-
-    // --- Search/Filter/Sort Logic ---
-    const suggestions = searchTerm
-        ? posts
-            .map(post => {
-                // Simplified filtering for suggestions
-                if (post.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-                    return { type: 'Post', text: post.title, id: post.id };
-                }
-                if (post.user.name.toLowerCase().includes(searchTerm.toLowerCase())) {
-                    return { type: 'User', text: post.user.name, id: post.user.name };
-                }
-                return null;
-            })
-            .filter(suggestion => suggestion !== null)
-            .filter((suggestion, index, self) =>
-                index === self.findIndex((s) => (s.id === suggestion.id && s.text === suggestion.text))
-            )
-            .slice(0, 5)
-        : [];
+    // --- Sorting & Search ---
+    const handleSortChange = (newSortOrder) => setSortOrder(newSortOrder);
+    const handleSearchTermChange = (newSearchTerm) => setSearchTerm(newSearchTerm);
 
     const filteredPosts = posts.filter(post => 
         post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -138,18 +162,23 @@ const Homepage = () => {
 
     const sortedPosts = [...filteredPosts].sort((a, b) => {
         switch (sortOrder) {
-            case 'oldest':
-                return a.id - b.id;
-            case 'top':
-                return b.counts.likes - a.counts.likes;
-            case 'newest':
-            default:
-                return b.id - a.id;
+            case 'oldest': return a.time - b.time;
+            case 'newest': return b.time - a.time;
+            case 'top': return b.counts.likes - a.counts.likes;
+            default: return 0;
         }
     });
 
     return (
         <div className={`${styles.homepage} ${styles[theme]}`}>
+            {/* Folosim direct componenta independentă în loc de LoginModal */}
+            {isLoginModalOpen && (
+                <PostAccessAuth 
+                    onAuthSuccess={handleLoginSuccess} 
+                    onCancel={handleLoginModalClose} 
+                />
+            )}
+
             <TopBar />
             <SearchBar 
                 isHidden={scrollDirection === 'down'} 
@@ -157,7 +186,7 @@ const Homepage = () => {
                 currentSort={sortOrder} 
                 searchTerm={searchTerm}
                 onSearchTermChange={handleSearchTermChange}
-                suggestions={suggestions}
+                suggestions={[]}
             />
             <main className={styles.mainContainer}>
                 <CreatePost onCreatePost={handleCreatePost} />
@@ -165,8 +194,7 @@ const Homepage = () => {
                     posts={sortedPosts} 
                     onUpdatePost={handleUpdatePost} 
                     onDeletePost={handleDeletePost} 
-                    onDeleteComment={handleDeleteComment} // Pass handler down
-                    // Pass the unique identifier for permission checks
+                    onDeleteComment={handleDeleteComment} 
                     currentUser={currentUsername} 
                 />
             </main>

@@ -1,0 +1,50 @@
+/* ErrorPage.module.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Ocupă toată înălțimea ecranului */
+    width: 100%;
+    text-align: center;
+    background-color: var(--bg-color); /* Folosește fundalul temei tale */
+    color: var(--text-color); /* Folosește culoarea textului din temă */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.container h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: #CF1F23; /* Roșu pentru eroare, să se potrivească cu umbra butonului */
+}
+
+.container p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.8;
+}
+
+.loginBtn {
+    display: inline-block;
+    padding: 12px 30px;
+    border: 2px solid var(--button-border-color);
+    background-color: var(--button-bg-color);
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px #CF1F23;
+    outline: none;
+}
+
+.loginBtn:hover {
+    background-color: var(--button-hover-bg-color);
+    color: var(--button-hover-text-color);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px #CF1F23;
+}

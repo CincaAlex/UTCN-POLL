@@ -4,7 +4,7 @@
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px var(--shadow-1);
-    border: 1px solid var(--border-secondary);
+    border: 1px solid #CF1F23;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -137,7 +137,7 @@
 }
 
 .pollOption.selected {
-    border-color: var(--accent);
+    border-color: #CF1F23;;
     background-color: var(--bg-tertiary);
 }
 
@@ -155,7 +155,7 @@
 }
 
 .checkboxBox.active {
-    border-color: var(--accent);
+    border-color:  #CF1F23;
     background-color: var(--accent);
 }
 
@@ -179,14 +179,14 @@
 }
 
 .radioCircle.active {
-    border-color: var(--accent);
+    border-color: #CF1F23;
 }
 
 .radioInner {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background-color: var(--accent);
+    background-color: #CF1F23;
     transform: scale(0);
     transition: transform 0.2s;
 }
@@ -241,7 +241,7 @@
 }
 
 .pollOption.winner .resultProgressBar {
-    background-color: var(--accent); 
+    background-color:  #CF1F23; 
     opacity: 0.8; 
 }
 
@@ -271,7 +271,7 @@
 }
 
 .voteButton {
-    background-color: var(--accent);
+    background-color: #CF1F23;
     color: white;
     border: none;
     border-radius: 8px;
@@ -283,8 +283,10 @@
 }
 
 .voteButton:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--shadow-1);
+    background-color: var(--button-hover-bg-color);
+  color: var(--button-hover-text-color);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px #CF1F23;
 }
 
 .voteButton:disabled {
@@ -369,4 +371,70 @@
 .actionBtn.delete:hover {
     color: var(--error-red);
     background-color: rgba(250, 56, 62, 0.1);
+}
+
+.betContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.betInput {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.tokenInfo {
+    font-size: 12px;
+    color: #888;
+}
+
+.betError {
+    font-size: 12px;
+    color: #d9534f;
+}
+
+/* Card highlight when user won */
+.won {
+    box-shadow: 0 0 24px #CF1F23;
+    border: 1px solid #CF1F23;
+}
+
+/* Inline win banner */
+.winInline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    
+    /* MODIFIED: Brighter, deeper gradient for richness */
+    background: linear-gradient(135deg, var(--accent-light), #CF1F23, var(--accent-darker));
+    background: linear-gradient(135deg, #CF1F23, #cf3437, #CF1F23); /* Using gold/red shades for richness */
+    
+    /* Ensure text stands out against the bright background, adjusted for contrast */
+    color: #2b1d00;
+    
+    padding: 10px 14px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    font-weight: 700; /* Made text bolder */
+    
+    /* NEW: Subtle inset shadow for sparkle/depth */
+    box-shadow: 
+        inset 0 0 10px #CF1F23, /* Inner white glow/sparkle */
+        0 4px 15px rgba(200, 0, 0, 0.6);        /* Outer glow mimicking the red/gold */
+    
+    /* NEW: Subtle transformation for a pop effect */
+    transform: scale(1.02);
+    transition: all 0.3s ease-out; /* Add transition for smoothness */
+    
+    /* Optional: Add a slight border for definition, mimicking metal trim */
+    border: 2px solid #CF1F23; 
+}
+
+.winInline span {
+    font-size: 12px;
+    opacity: 0.85;
 }

@@ -2,7 +2,6 @@ import React, { useState, useContext } from 'react';
 import styles from './CreatePost.module.css';
 import { FiType, FiUser } from 'react-icons/fi'; // Removed FiBarChart2, FiPlus, FiX
 import { UserContext } from '../../context/UserContext';
-import { Link } from 'react-router-dom'; // Import Link
 
 const Avatar = ({ src, className }) => {
     const [hasError, setHasError] = useState(false);
@@ -60,10 +59,6 @@ const CreatePost = ({ onCreatePost }) => {
                     >
                         <FiType /> Text
                     </button>
-                    {/* Replaced Poll tab with a Link to the Create Polls page */}
-                    <Link to="/create-poll" className={styles.tabButton}> 
-                        <FiType /> Poll
-                    </Link>
                 </div>
             </div>
 
