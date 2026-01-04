@@ -5,12 +5,17 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
 public class User {
 
     @Id
@@ -26,14 +31,40 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private int points;
+    private int points = 0;
 
+    @Column(name = "verification_code")
     private Integer verificationCode;
+
+    @Column(name = "verified")
     private boolean verified = false;
+
+    @Column(name = "last_spin_date")
     private LocalDate lastSpinDate;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    public User() {}
+    // JSON columns for inheritance
+    @Convert(converter = IntegerListConverter.class)
+    @Column(name = "created_polls", columnDefinition = "JSON")
+    private List<Integer> createdPolls;
+
+    @Convert(converter = IntegerListConverter.class)
+    @Column(name = "achievement_list", columnDefinition = "JSON")
+    private List<Integer> achievementList;
+
+    @Convert(converter = IntegerListConverter.class)
+    @Column(name = "vote_list", columnDefinition = "JSON")
+    private List<Integer> voteList;
+
+    // Constructors
+    public User() {
+        // Initialize lists to prevent null
+        this.createdPolls = new ArrayList<>();
+        this.achievementList = new ArrayList<>();
+        this.voteList = new ArrayList<>();
+    }
 
     public User(String name, String email, String plainPassword) {
         this.name = name;
@@ -41,9 +72,20 @@ public class User {
         this.password = hashPassword(plainPassword);
         this.points = 0;
         this.verified = false;
+        this.createdPolls = new ArrayList<>();
+        this.achievementList = new ArrayList<>();
+        this.voteList = new ArrayList<>();
     }
 
-    // 🔹 Parola hashing SHA-256
+    // Lifecycle callback
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+
+    // Password hashing SHA-256
     private String hashPassword(String plainPassword) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -54,42 +96,94 @@ public class User {
         }
     }
 
+    // Getter and Setter methods
+    public int getId() { return id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String plainPassword) {
+        this.password = hashPassword(plainPassword);
+    }
+
+    public int getPoints() { return points; }
+    public void setPoints(int points) { this.points = points; }
+    public void addPoints(int points) { this.points += points; }
+    public void decreasePoints(int points) {
+        this.points = Math.max(0, this.points - points);
+    }
+
+    public Integer getVerificationCode() { return verificationCode; }
+    public void setVerificationCode(Integer verificationCode) {
+        this.verificationCode = verificationCode;
+    }
+
+    public boolean isVerified() { return verified; }
+    public void setVerified(boolean verified) { this.verified = verified; }
+
     public LocalDate getLastSpinDate() { return lastSpinDate; }
-    public void setLastSpinDate(LocalDate lastSpinDate) { this.lastSpinDate = lastSpinDate; }
+    public void setLastSpinDate(LocalDate lastSpinDate) {
+        this.lastSpinDate = lastSpinDate;
+    }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public List<Integer> getCreatedPolls() {
+        return createdPolls != null ? createdPolls : new ArrayList<>();
+    }
+
+    public void setCreatedPolls(List<Integer> createdPolls) {
+        this.createdPolls = createdPolls;
+    }
+
+    public List<Integer> getAchievementList() {
+        return achievementList != null ? achievementList : new ArrayList<>();
+    }
+    public void setAchievementList(List<Integer> achievementList) {
+        this.achievementList = achievementList;
+    }
+
+    public List<Integer> getVoteList() {
+        return voteList != null ? voteList : new ArrayList<>();
+    }
+    public void setVoteList(List<Integer> voteList) {
+        this.voteList = voteList;
+    }
 
     public boolean checkPassword(String plainPassword) {
         return hashPassword(plainPassword).equals(this.password);
     }
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_achievements",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "achievement_id")
-    )
-    private Set<Achievement> earnedAchievements = new HashSet<>();
-
-    // Add getter and setter
-    public Set<Achievement> getEarnedAchievements() { return earnedAchievements; }
-    public void setEarnedAchievements(Set<Achievement> earnedAchievements) {
-        this.earnedAchievements = earnedAchievements;
+    // Get user type for discriminator
+    public String getUserType() {
+        if (this instanceof Admin) return "ADMIN";
+        if (this instanceof Member) return "MEMBER";
+        return "USER";
     }
 
-    // 🔹 Getter si setter
-    public int getId() { return id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPassword() { return password; }
-    public void setPassword(String plainPassword) { this.password = hashPassword(plainPassword); }
-    public int getPoints() { return points; }
-    public void setPoints(int points) { this.points = points; }
-    public void addPoints(int points) { this.points += points; }
-    public void decreasePoints(int points) { this.points = Math.max(0, this.points - points); }
+    // Helper methods for lists
+    public void addToCreatedPolls(int pollId) {
+        if (!createdPolls.contains(pollId)) {
+            createdPolls.add(pollId);
+        }
+    }
 
-    public Integer getVerificationCode() { return verificationCode; }
-    public void setVerificationCode(Integer verificationCode) { this.verificationCode = verificationCode; }
-    public boolean isVerified() { return verified; }
-    public void setVerified(boolean verified) { this.verified = verified; }
+    public void addToAchievementList(int achievementId) {
+        if (!achievementList.contains(achievementId)) {
+            achievementList.add(achievementId);
+        }
+    }
+
+    public void addToVoteList(int voteId) {
+        if (!voteList.contains(voteId)) {
+            voteList.add(voteId);
+        }
+    }
 }
