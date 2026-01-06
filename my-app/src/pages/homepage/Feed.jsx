@@ -1,5 +1,6 @@
 import React from 'react';
 import PostCard from '../../components/PostCard/PostCard'; // Updated import path
+import styles from './Homepage.module.css'
 
 const Feed = ({ posts, onUpdatePost, onDeletePost, onDeleteComment, currentUser }) => {
     return (
@@ -12,6 +13,7 @@ const Feed = ({ posts, onUpdatePost, onDeletePost, onDeleteComment, currentUser 
                     onDeletePost={onDeletePost} 
                     onDeleteComment={onDeleteComment} // Pass it down
                     currentUser={currentUser} 
+                    className={styles.postScrollWrapper}
                 />
             ))}
         </div>

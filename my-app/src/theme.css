@@ -12,16 +12,16 @@ body, html {
 body.light {
   --bg-primary: #F0F2F5;
   --bg-secondary: #FFFFFF;
-  --bg-tertiary: #1e375e;
+  --bg-tertiary: #8a8d91b3;
   --text-primary: #050505;
-  --text-secondary: #65676B;
-  --text-tertiary: #8A8D91;
-  --accent: #FA383E;
+  --text-secondary: #65676bd5;
+  --text-tertiary: #8a8d91d2;
+  --accent: #CF1F23;
   --border-primary: #CED0D4;
   --border-secondary: #E5E7EB;
   --shadow-1: rgba(0, 0, 0, 0.1);
   --shadow-2: rgba(0, 0, 0, 0.05);
-  --error-red: #FA383E;
+  --error-red: #CF1F23;
 }
 
 body.dark {
@@ -31,12 +31,12 @@ body.dark {
   --text-primary: #E4E6EB;
   --text-secondary: #B0B3B8;
   --text-tertiary: #8A8D91;
-  --accent: #FA383E;
+  --accent: #CF1F23;
   --border-primary: #393A3B;
   --border-secondary: #404040;
   --shadow-1: rgba(0, 0, 0, 0.2);
   --shadow-2: rgba(0, 0, 0, 0.1);
-  --error-red: #FA383E;
+  --error-red: #CF1F23;
 }
 
 /* Apply base styles */

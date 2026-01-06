@@ -17,3 +17,36 @@
         padding-right: 0.5rem;
     }
 }
+
+.postScrollWrapper {
+    transition: all 0.3s ease;
+    border: 1px solid transparent; /* Placeholder to prevent layout shift */
+    margin-bottom: 20px;
+    border-radius: 16px;
+}
+
+/* This class is added via JavaScript in SearchBar.jsx */
+:global(.post-highlight-active) {
+    animation: marginGlow 3s ease-out;
+    border-radius: 16px;
+    z-index: 10;
+    position: relative;
+}
+
+@keyframes marginGlow {
+    0% {
+        border: 1px solid #CF1F23;
+        box-shadow: 0 0 0px transparent;
+    }
+    20% {
+        border: 1px solid #CF1F23;
+        /* Matches your Profile Card shadow */
+        box-shadow: 0 4px 15px #CF1F23; 
+        transform: scale(1.01);
+    }
+    100% {
+        border: 1px solid transparent;
+        box-shadow: 0 0 0px transparent;
+        transform: scale(1);
+    }
+}

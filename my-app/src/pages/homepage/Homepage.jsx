@@ -8,8 +8,41 @@ import Feed from './Feed';
 import styles from './Homepage.module.css';
 import { useScrollDirection } from '../../hooks/useScrollDirection';
 import { useNavigate } from 'react-router-dom';
-// Importăm componenta independentă
 import PostAccessAuth from '../../components/PostAccessAuth/PostAccessAuth';
+
+// --- MOCK DATA FOR USERS (To show in search) ---
+const allUsers = [
+    {
+        username: 'andreip',
+        photoUrl: 'https://i.pravatar.cc/100?u=andreip',
+        tokens: 1500,
+        friends: 45,
+        badges: [
+            { name: 'Early Adopter', symbol: '🚀', className: 'badge-gold' },
+            { name: 'Top Contributor', symbol: '✍️', className: 'badge-blue' }
+        ],
+        pollHistory: [
+            { month: 'Jan', winnings: 200 },
+            { month: 'Feb', winnings: 800 },
+            { month: 'Mar', winnings: 1500 }
+        ]
+    },
+    {
+        username: 'HighRoller_777',
+        photoUrl: 'https://i.pravatar.cc/100?u=HighRoller_777',
+        tokens: 10000,
+        friends: 120,
+        badges: [
+            { name: 'Whale', symbol: '🐋', className: 'badge-red' },
+            { name: 'Lucky', symbol: '🍀', className: 'badge-green' }
+        ],
+        pollHistory: [
+            { month: 'Jan', winnings: 5000 },
+            { month: 'Feb', winnings: 3000 },
+            { month: 'Mar', winnings: 10000 }
+        ]
+    }
+];
 
 // --- MOCK DATA ---
 const initialHomepagePosts = [
@@ -58,9 +91,31 @@ const Homepage = () => {
 
     const navigate = useNavigate();
 
+    const getSuggestions = () => {
+        if (!searchTerm) return [];
+
+        const userSuggestions = allUsers
+            .filter(u => u.username.toLowerCase().includes(searchTerm.toLowerCase()))
+            .map(u => ({
+                text: u.username,
+                type: 'user', // This tells SearchBar to show the profile
+                userData: u    // Pass the full user object for the popup
+            }));
+
+        const postSuggestions = posts
+            .filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase()))
+            .map(p => ({
+                text: p.title,
+                type: 'post',
+                id: p.id
+            }));
+
+        return [...userSuggestions, ...postSuggestions].slice(0, 5); // Limit to top 5
+    };
+
     // Scroll to a post if hash exists
     const handleScrollToPost = useCallback(() => {
-        const hash = window.location.hash; // ex: #post-1
+        const hash = window.location.hash;
         if (hash && hash.startsWith('#post-')) {
             if (!user) return;
 
@@ -171,7 +226,6 @@ const Homepage = () => {
 
     return (
         <div className={`${styles.homepage} ${styles[theme]}`}>
-            {/* Folosim direct componenta independentă în loc de LoginModal */}
             {isLoginModalOpen && (
                 <PostAccessAuth 
                     onAuthSuccess={handleLoginSuccess} 
@@ -186,7 +240,8 @@ const Homepage = () => {
                 currentSort={sortOrder} 
                 searchTerm={searchTerm}
                 onSearchTermChange={handleSearchTermChange}
-                suggestions={[]}
+                suggestions={getSuggestions()} // Passing the typed suggestions here
+                theme={theme}
             />
             <main className={styles.mainContainer}>
                 <CreatePost onCreatePost={handleCreatePost} />
