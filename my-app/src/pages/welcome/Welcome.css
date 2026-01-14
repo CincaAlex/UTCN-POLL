@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body.light {
+  --background-color: #121212;
+  --text-color: #FFFFFF;
+  --secondary-text-color: #B3B3B3;
+  --accent-color: #CF1F23;
+  --button-bg-color: transparent;
+  --button-border-color: var(--accent-color);
+  --button-hover-bg-color: var(--accent-color);
+  --button-hover-text-color: #FFFFFF;
+  --shadow-color: #CF1F23;
+  --shadow-hover-color: #CF1F23;
+}
+
+body.dark {
+  --background-color: #121212;
+  --text-color: #FFFFFF;
+  --secondary-text-color: #B3B3B3;
+  --accent-color: #CF1F23;
+  --button-bg-color: transparent;
+  --button-border-color: var(--accent-color);
+  --button-hover-bg-color: var(--accent-color);
+  --button-hover-text-color: #FFFFFF;
+  --shadow-color: #CF1F23;
+  --shadow-hover-color: #CF1F23;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.welcome-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.welcome-title {
+  font-size: 3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  animation: fadeIn 1.5s ease-in-out;
+}
+
+.welcome-subtitle {
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: var(--secondary-text-color);
+  margin-bottom: 2.5rem;
+  max-width: 500px;
+}
+
+.welcome-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.welcome-button {
+  display: inline-block;
+  padding: 12px 30px;
+  border: 2px solid var(--button-border-color);
+  background-color: var(--button-bg-color);
+  color: var(--accent-color);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px var(--shadow-color);
+}
+
+.welcome-button:hover {
+  background-color: var(--button-hover-bg-color);
+  color: var(--button-hover-text-color);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px var(--shadow-hover-color);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .welcome-title {
+    font-size: 2.5rem;
+  }
+  .welcome-subtitle {
+    font-size: 1rem;
+  }
+  .welcome-buttons {
+    flex-direction: column;
+    width: 80%;
+  }
+  .welcome-button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}

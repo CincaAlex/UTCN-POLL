@@ -1,0 +1,52 @@
+.homepage {
+    min-height: 100vh;
+}
+
+.mainContainer {
+    max-width: 56rem;
+    margin: 0 auto;
+    /* TopBar is 4rem, SearchBar container is sticky and has 1rem vertical padding + 3.5rem height.
+       Total space needed at the top is 4 + 1 + 3.5 + 1 = 9.5rem */
+    padding: 9.5rem 1rem 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .mainContainer {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+.postScrollWrapper {
+    transition: all 0.3s ease;
+    border: 1px solid transparent; /* Placeholder to prevent layout shift */
+    margin-bottom: 20px;
+    border-radius: 16px;
+}
+
+/* This class is added via JavaScript in SearchBar.jsx */
+:global(.post-highlight-active) {
+    animation: marginGlow 3s ease-out;
+    border-radius: 16px;
+    z-index: 10;
+    position: relative;
+}
+
+@keyframes marginGlow {
+    0% {
+        border: 1px solid #CF1F23;
+        box-shadow: 0 0 0px transparent;
+    }
+    20% {
+        border: 1px solid #CF1F23;
+        /* Matches your Profile Card shadow */
+        box-shadow: 0 4px 15px #CF1F23; 
+        transform: scale(1.01);
+    }
+    100% {
+        border: 1px solid transparent;
+        box-shadow: 0 0 0px transparent;
+        transform: scale(1);
+    }
+}
