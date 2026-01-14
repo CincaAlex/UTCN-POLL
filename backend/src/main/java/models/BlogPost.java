@@ -24,7 +24,7 @@ public class BlogPost {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comments> comments = new ArrayList<>();
 
-    // În loc de set<Integer>, salvăm userii care au dat like
+    // In loc de set<Integer>, salvam userii care au dat like
     @ElementCollection
     @CollectionTable(name = "post_likes", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "user_id")
@@ -50,6 +50,8 @@ public class BlogPost {
     public List<Comments> getComments() { return comments; }
 
     public int getLikes() { return likedBy.size(); }
+
+    public boolean isLikedBy(int id) { return  likedBy.contains(id); }
 
     public ResultError editContent(String content) {
         if (content.trim().isEmpty()) {

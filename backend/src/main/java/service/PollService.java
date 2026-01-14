@@ -28,7 +28,7 @@ public class PollService {
             return new ResultError(false, "Question cannot be empty");
         }
 
-        poll.setCreatorId(user.getId());
+        poll.setCreator(user);
         pollRepository.save(poll);
 
         return new ResultError(true, "");
