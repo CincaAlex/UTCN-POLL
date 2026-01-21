@@ -3,14 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import './Login.css';
 
-// 1. DEFINE ADMIN EMAILS
-// In a real application, this list would come from a secure API endpoint.
-const ADMIN_EMAILS = [
-    'admin@utcn.ro',
-    'admin@campus.utcluj.ro',
-    'another.admin@utcn.ro',
-];
-
 function Login() {
   const navigate = useNavigate();
   const { login } = useContext(UserContext);
@@ -21,7 +13,6 @@ function Login() {
   });
 
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleChange = (e) => {
     setFormData({
@@ -51,29 +42,43 @@ function Login() {
       setErrors(validationErrors);
     } else {
       setErrors({});
-      setIsSubmitting(true);
       
-      // *** 2. DETERMINE USER ROLE BASED ON EMAIL ***
-      const enteredEmail = formData.email.toLowerCase();
-      const userRole = ADMIN_EMAILS.includes(enteredEmail) ? 'admin' : 'user';
-
       try {
-        // In a real app, you would send formData to the API. 
-        // Here, we simulate success and pass the determined role.
-        
-        // 1. Simulate API call/Login action and pass the role
-        await login(userRole); 
-        
-        // 2. Navigate to the desired page after successful login
-        // You might want to navigate to a different page based on the role here!
-        navigate('/homepage');
-        
+        const response = await fetch('/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            email: formData.email,
+            password: formData.password,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          const token = data.message;
+          
+          const userResponse = await fetch(`/users/email/${formData.email}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            login(userData, token); 
+            navigate('/homepage');
+          } else {
+            setErrors({ form: 'Failed to fetch user data after login.' });
+          }
+        } else {
+          setErrors({ form: data.message || 'Login failed' });
+        }
       } catch (error) {
-        // This catch block handles errors thrown by the simulated `login` function
-        console.error("Login failed:", error);
-        setErrors(prev => ({ ...prev, general: 'Login failed. Please check your credentials.' }));
-      } finally {
-        setIsSubmitting(false);
+        console.error('Login error:', error);
+        setErrors({ form: 'An error occurred during login.' });
       }
     }
   };
@@ -108,8 +113,8 @@ function Login() {
           {errors.password && <small className="error-text">{errors.password}</small>}
         </div>
 
-        <button type="submit" className="login-btn" disabled={isSubmitting}>
-          {isSubmitting ? 'Logging In...' : 'Login'}
+        <button type="submit" className="login-btn">
+          Login
         </button>
       </form>
     </div>

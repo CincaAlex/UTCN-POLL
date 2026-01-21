@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import styles from './CreatePost.module.css';
-import { FiType, FiUser } from 'react-icons/fi'; // Removed FiBarChart2, FiPlus, FiX
+import { FiType, FiUser } from 'react-icons/fi';
 import { UserContext } from '../../context/UserContext';
 
 const Avatar = ({ src, className }) => {
@@ -21,29 +21,48 @@ const Avatar = ({ src, className }) => {
 };
 
 const CreatePost = ({ onCreatePost }) => {
-    const { user } = useContext(UserContext);
+    const { user, token } = useContext(UserContext);
     const [postTitle, setPostTitle] = useState('');
     const [postText, setPostText] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const handlePost = async () => {
-        if (!postTitle.trim() && !postText.trim()) return;
+        if (!user || !token || (!postTitle.trim() && !postText.trim())) {
+            setError('Please login to create a post and ensure title or content is not empty.');
+            return;
+        }
 
         setIsLoading(true);
         setError(null);
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            onCreatePost(postTitle, postText, 'text', []); // Always 'text' type
+            const response = await fetch('/api/posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title: postTitle,
+                    content: postText,
+                    author: user // Pass the full user object
+                })
+            });
 
-            setPostTitle('');
-            setPostText('');
+            if (response.ok) {
+                const newPost = await response.json(); // Assuming backend returns the created post
+                onCreatePost(newPost); // Call parent handler to add new post to feed
+                setPostTitle('');
+                setPostText('');
+            } else {
+                const errorData = await response.json();
+                setError(errorData.message || 'Failed to post. Please try again.');
+                console.error('Error creating post:', errorData);
+            }
         } catch (err) {
-            setError('Failed to post. Please try again.');
-            console.error('Error submitting post:', err);
+            setError('An error occurred during posting.');
+            console.error('Network or unexpected error creating post:', err);
         } finally {
             setIsLoading(false);
         }
@@ -55,7 +74,7 @@ const CreatePost = ({ onCreatePost }) => {
                 <Avatar src={user?.photoUrl} className={styles.avatar} />
                 <div className={styles.tabs}>
                     <button 
-                        className={`${styles.tabButton} ${styles.activeTab}`} // Always active for text posts
+                        className={`${styles.tabButton} ${styles.activeTab}`}
                     >
                         <FiType /> Text
                     </button>
@@ -67,23 +86,23 @@ const CreatePost = ({ onCreatePost }) => {
                     type="text"
                     value={postTitle}
                     onChange={(e) => setPostTitle(e.target.value)}
-                    placeholder="Title" // Simplified placeholder
+                    placeholder="Title"
                     className={styles.createPostInput}
                     disabled={isLoading}
                 />
                 
-                <input // Always render text input
-                    type="text"
+                <textarea
                     value={postText}
                     onChange={(e) => setPostText(e.target.value)}
                     placeholder="What's on your mind?"
                     className={styles.createPostInput}
                     disabled={isLoading}
+                    rows="3" // Changed to textarea for multi-line input
                 />
 
                 <button
                     onClick={handlePost}
-                    disabled={(!postTitle.trim() && !postText.trim()) || isLoading} // Simplified disabled logic
+                    disabled={(!postTitle.trim() && !postText.trim()) || isLoading || !user} // Disable if not logged in
                     className={styles.createPostButton}
                 >
                     {isLoading ? 'Posting...' : 'Post'}

@@ -12,15 +12,23 @@ import java.util.Optional;
 @Service
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final UserService userService;
-    private final MailService mailService;
+        private final UserRepository userRepository;
 
-    public AuthService(UserRepository userRepository, UserService userService, MailService mailService) {
-        this.userRepository = userRepository;
-        this.userService = userService;
-        this.mailService = mailService;
-    }
+        private final UserService userService;
+
+        private final MailService mailService;
+
+    
+
+        public AuthService(UserRepository userRepository, UserService userService, MailService mailService) {
+
+            this.userRepository = userRepository;
+
+            this.userService = userService;
+
+            this.mailService = mailService;
+
+        }
 
     public ResultError register(String name, String email, String password) {
         ResultError result = userService.createUser(name, email, password);

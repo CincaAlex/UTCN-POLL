@@ -7,7 +7,7 @@ import ro from 'date-fns/locale/ro';
 import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from '../../context/UserContext';
 import PollCard from '../../components/PollCard/PollCard';
-import { INITIAL_POLLS } from '../../data/polls';
+import { INITIAL_POLLS } from '../../data/polls.js';
 import { AnimatePresence, motion } from 'framer-motion';
 
 // Register Romanian locale
