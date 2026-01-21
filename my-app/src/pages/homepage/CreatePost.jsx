@@ -44,9 +44,8 @@ const CreatePost = ({ onCreatePost }) => {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    title: postTitle,
-                    content: postText,
-                    author: user // Pass the full user object
+                title: postTitle.trim(),
+                content: postText.trim()
                 })
             });
 

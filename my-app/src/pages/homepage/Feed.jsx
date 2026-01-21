@@ -7,7 +7,7 @@ const Feed = ({ posts, onUpdatePost, onDeletePost, onDeleteComment, currentUser 
         <div className="feed">
             {posts.map(post => (
                 <PostCard 
-                    key={post.id} 
+                    key={post?.id ?? `${post?.createdAt ?? 'temp'}-${Math.random()}`}
                     post={post} 
                     onUpdatePost={onUpdatePost} 
                     onDeletePost={onDeletePost} 

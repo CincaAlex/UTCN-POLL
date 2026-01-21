@@ -9,43 +9,37 @@ export const UserProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchUser = async () => {
-            if (token) {
-                try {
-                    const decodedToken = jwtDecode(token);
-                    const currentTime = Date.now() / 1000;
-                    if (decodedToken.exp < currentTime) {
-                        // Token expired
-                        logout();
-                        return;
-                    }
+    const initFromToken = async () => {
+        if (!token) {
+        setLoading(false);
+        return;
+        }
 
-                    // Token is valid, fetch user data
-                    // Assuming the email is in the 'sub' field of the token
-                    const email = decodedToken.sub;
-                    const response = await fetch(`/users/email/${email}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
+        try {
+        const decodedToken = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
 
-                    if (response.ok) {
-                        const userData = await response.json();
-                        setUser(userData);
-                    } else {
-                        // Failed to fetch user, maybe token is invalid on the server
-                        logout();
-                    }
-                } catch (error) {
-                    console.error("Token validation or user fetch error:", error);
-                    logout();
-                }
-            }
-            setLoading(false);
-        };
+        if (decodedToken.exp && decodedToken.exp < currentTime) {
+            logout();
+            return;
+        }
 
-        fetchUser();
+        // ✅ NU mai facem fetch la /api/users/email/... (îți dă 404 și te deloghează)
+        // păstrăm un user minim din token
+        setUser(prev => prev ?? { email: decodedToken.sub, name: decodedToken.sub, userType: 'USER' });
+
+        } catch (e) {
+        console.error("Token decode error:", e);
+        logout();
+        return;
+        } finally {
+        setLoading(false);
+        }
+    };
+
+    initFromToken();
     }, [token]);
+
 
     const login = (userData, userToken) => {
         setToken(userToken);
