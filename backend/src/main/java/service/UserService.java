@@ -5,6 +5,7 @@ import models.User;
 import org.springframework.stereotype.Service;
 import repository.UserRepository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -27,6 +28,20 @@ public class UserService {
             return new ResultError(true, "User created successfully");
         } catch (Exception e) {
             return new ResultError(false, "Failed to create user: " + e.getMessage());
+        }
+    }
+
+    public void saveUser(User user) {
+        userRepository.save(user);
+    }
+
+    public ResultError updateLastSpinDate(User user, String date) {
+        try {
+            user.setLastSpinDate(LocalDate.parse(date));
+            userRepository.save(user);
+            return new ResultError(true, "Last spin date updated successfully");
+        } catch (Exception e) {
+            return new ResultError(false, "Failed to update last spin date: " + e.getMessage());
         }
     }
 

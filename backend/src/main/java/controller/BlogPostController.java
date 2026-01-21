@@ -72,9 +72,10 @@ public class BlogPostController {
     }
 
     @PostMapping("/{id}/like")
-    public ResponseEntity<ResultError> toggleLike(@PathVariable int id, @RequestBody User user) {
-        return ResponseEntity.ok(blogPostService.toggleLike(id, user));
+    public ResponseEntity<ResultError> toggleLike(@PathVariable int id, java.security.Principal principal) {
+        return ResponseEntity.ok(blogPostService.toggleLikeByEmail(id, principal.getName()));
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ResultError> deletePost(@PathVariable int id) {

@@ -247,6 +247,18 @@ const Homepage = () => {
     }
   };
 
+  // ✅ Like handler - actualizează state-ul după toggle
+  const handleToggleLike = async (postId, updatedLikedBy) => {
+    // updatedLikedBy vine de la PostCard după ce face optimistic update
+    setPosts(prev =>
+      prev.map(post =>
+        post.id === postId
+          ? { ...post, likedBy: updatedLikedBy }
+          : post
+      )
+    );
+  };
+
   // Sorting & search
   const handleSortChange = (newSortOrder) => setSortOrder(newSortOrder);
   const handleSearchTermChange = (newSearchTerm) => setSearchTerm(newSearchTerm);
@@ -307,6 +319,8 @@ const Homepage = () => {
           onUpdatePost={handleUpdatePost}
           onDeletePost={handleDeletePost}
           onDeleteComment={handleDeleteComment}
+          onToggleLike={handleToggleLike}
+          currentUser={user}
         />
       </main>
     </div>

@@ -6,6 +6,8 @@ import models.ResultError;
 import models.User;
 import org.springframework.stereotype.Service;
 import repository.BlogPostRepository;
+import repository.UserRepository;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -14,9 +16,11 @@ import java.util.Optional;
 public class BlogPostService {
 
     private final BlogPostRepository blogPostRepository;
+    private final UserRepository userRepository;
 
-    public BlogPostService(BlogPostRepository blogPostRepository) {
+    public BlogPostService(BlogPostRepository blogPostRepository, UserRepository userRepository) {
         this.blogPostRepository = blogPostRepository;
+        this.userRepository = userRepository;
     }
 
     public List<BlogPost> getAllPosts() {
@@ -34,6 +38,20 @@ public class BlogPostService {
 
     public BlogPost savePost(BlogPost post) {
         return blogPostRepository.save(post);
+    }
+
+    public ResultError toggleLikeByEmail(int postId, String email) {
+        Optional<BlogPost> postOpt = blogPostRepository.findById(postId);
+        if (postOpt.isEmpty()) return new ResultError(false, "Post not found");
+
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+        if (user == null) return new ResultError(false, "User not found");
+
+        BlogPost post = postOpt.get();
+        ResultError res = post.toggleLike(user);
+        blogPostRepository.save(post);
+        return res;
     }
 
 

@@ -6,10 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.UserService;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
@@ -38,6 +39,25 @@ public class UserController {
             return ResponseEntity.ok(new ResultError(true, "Login successful"));
         } else {
             return ResponseEntity.status(401).body(new ResultError(false, "Invalid credentials"));
+        }
+    }
+
+    @PostMapping("/{id}/updateLastSpin")
+    public ResponseEntity<ResultError> updateLastSpin(
+            @PathVariable int id,
+            @RequestParam String date) {
+
+        Optional<User> userOpt = userService.getUserById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(new ResultError(false, "User not found"));
+        }
+
+        ResultError result = userService.updateLastSpinDate(userOpt.get(), date);
+
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
         }
     }
 

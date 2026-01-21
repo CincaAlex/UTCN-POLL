@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import './Login.css';
 
+
+
 function Login() {
   const navigate = useNavigate();
   const { login } = useContext(UserContext);
@@ -66,8 +68,9 @@ function Login() {
           userType: 'USER',          // fallback
         };
 
-        login(minimalUser, token);
-        navigate('/homepage');
+      await login(minimalUser, token);
+      navigate('/homepage');
+
       } else {
         setErrors({ form: data.message || 'Login failed' });
       }

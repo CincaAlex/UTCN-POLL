@@ -1,6 +1,9 @@
 import React, { useState, useRef, useContext, useEffect, useMemo } from 'react';
 import styles from './PostCard.module.css';
-import { FiMessageSquare, FiShare2, FiEdit2, FiTrash2, FiUser, FiCheck, FiX, FiTrash, FiClipboard } from 'react-icons/fi';
+import {
+  FiMessageSquare, FiShare2, FiEdit2, FiTrash2, FiUser,
+  FiCheck, FiX, FiTrash, FiClipboard
+} from 'react-icons/fi';
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import Modal from '../../components/Modal/Modal';
 import { UserContext } from '../../context/UserContext';
@@ -15,17 +18,46 @@ const formatRelativeTime = (timeString) => {
     const diff = Math.floor((now - date) / 1000);
 
     if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 3600)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 86400)}h ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
   } catch {
     return timeString;
   }
 };
 
-const DEFAULT_AVATAR = "/default-avatar.png"; // pune fișierul în public/
+const DEFAULT_AVATAR = "/default-avatar.png";
 
-const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
+// ---- helpers pentru likedBy (acceptă id-uri sau User objects) ----
+const toUserId = (x) => {
+  if (x == null) return null;
+  if (typeof x === 'number') return x;
+  if (typeof x === 'string') {
+    const n = Number(x);
+    return Number.isFinite(n) ? n : null;
+  }
+  if (typeof x === 'object') {
+    const n = Number(x.id);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+const toUserDisplay = (x) => {
+  if (x == null) return null;
+  if (typeof x === 'object') {
+    return {
+      id: toUserId(x),
+      name: x.name ?? (x.id != null ? `User ID: ${x.id}` : 'Unknown user'),
+      photoUrl: x.photoUrl ?? null,
+    };
+  }
+  // id simplu
+  const id = toUserId(x);
+  return { id, name: id != null ? `User ID: ${id}` : 'Unknown user', photoUrl: null };
+};
+
+const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleLike }) => {
   const { user, token } = useContext(UserContext);
 
   // normalize content: acceptă și post.body dacă mai există în date vechi
@@ -43,7 +75,7 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
     ? { id: user.id, name: user.name, role: user.userType, photoUrl: user.photoUrl }
     : null;
 
-  const isPostOwner = !!(loggedInUser && author?.id && author.id === loggedInUser.id);
+  const isPostOwner = !!(loggedInUser && author?.id && Number(author.id) === Number(loggedInUser.id));
   const isAdmin = loggedInUser?.role === 'ADMIN';
   const canManagePost = isPostOwner || isAdmin;
 
@@ -55,18 +87,29 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
   const [editedTitle, setEditedTitle] = useState(title);
   const [editedBody, setEditedBody] = useState(content);
 
-  // ✅ IMPORTANT: nu mai sincroniza comments/likedBy cu useEffect (asta îți făcea loop).
-  // Ținem override local doar când user interacționează.
+  // override local doar când user interacționează
   const [localComments, setLocalComments] = useState(null); // null => folosim ce vine din post
-  const [localLikedBy, setLocalLikedBy] = useState(null);   // null => folosim ce vine din post
+  const [localLikedByIds, setLocalLikedByIds] = useState(null); // null => folosim ce vine din post
 
   const comments = localComments ?? (Array.isArray(post?.comments) ? post.comments : []);
-  const currentLikedBy = localLikedBy ?? (Array.isArray(post?.likedBy) ? post.likedBy : []);
 
-  const isLiked = !!(user && currentLikedBy.includes(user.id));
+  // likedBy poate fi ids sau user objects -> îl convertim în ids
+  const baseLikedBy = Array.isArray(post?.likedBy) ? post.likedBy : [];
+  const baseLikedByIds = useMemo(
+    () => baseLikedBy.map(toUserId).filter((v) => v != null),
+    [baseLikedBy]
+  );
+
+  const currentLikedByIds = localLikedByIds ?? baseLikedByIds;
+
+  // user.id poate fi string -> normalizează
+  const myUserId = Number(user?.id);
+  const hasMyUserId = Number.isFinite(myUserId);
+
+  const isLiked = hasMyUserId && currentLikedByIds.includes(myUserId);
 
   const counts = {
-    likes: currentLikedBy.length,
+    likes: currentLikedByIds.length,
     comments: comments.length,
   };
 
@@ -74,19 +117,17 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
   const [copied, setCopied] = useState(false);
   const shareContainerRef = useRef(null);
 
-  // ✅ când se schimbă post (după fetch), sincronizează doar câmpurile de edit
-  // (cu guard ca să evităm setState inutil)
+  // sincronizează doar câmpurile de edit
   useEffect(() => {
     setEditedTitle(prev => (prev === title ? prev : title));
     setEditedBody(prev => (prev === content ? prev : content));
   }, [title, content]);
 
-  // dacă user navighează între posturi / se reîncarcă lista,
-  // resetăm override local ca să reflecte ce vine din server
+  // reset override local când se schimbă post-ul (sau când primim update din parent)
   useEffect(() => {
     setLocalComments(null);
-    setLocalLikedBy(null);
-  }, [id]);
+    setLocalLikedByIds(null);
+  }, [id, post?.likedBy]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -102,16 +143,14 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
   const getAvatarSrc = (avatarUrl) => avatarUrl || DEFAULT_AVATAR;
 
   const handleLike = async () => {
-    if (!user || !token || !id) return;
+    if (!token || !id || !hasMyUserId) return;
 
     try {
       const response = await fetch(`/api/posts/${id}/like`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(user), // pe termen lung: ideal scoți user din body și iei din JWT
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (!response.ok) {
@@ -119,13 +158,20 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
         return;
       }
 
-      setLocalLikedBy(prev => {
-        const base = prev ?? (Array.isArray(post?.likedBy) ? post.likedBy : []);
-        if (base.includes(user.id)) {
-          return base.filter(uid => uid !== user.id);
-        }
-        return [...base, user.id];
-      });
+      // ✅ Backend returnează post-ul updatat cu likedBy
+      const updatedPost = await response.json();
+      
+      // ✅ Actualizează local optimistic
+      const newLikedByIds = baseLikedByIds.includes(myUserId)
+        ? baseLikedByIds.filter(uid => uid !== myUserId)
+        : [...baseLikedByIds, myUserId];
+      
+      setLocalLikedByIds(newLikedByIds);
+
+      // ✅ Notifică parent-ul (Homepage) să actualizeze state-ul global
+      if (onToggleLike && updatedPost?.likedBy) {
+        onToggleLike(id, updatedPost.likedBy);
+      }
     } catch (error) {
       console.error('Error toggling like:', error);
     }
@@ -143,7 +189,7 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          author: user, // pe termen lung: ideal scoți author din body și iei din JWT
+          author: user,
           comment: newComment.trim(),
         }),
       });
@@ -153,7 +199,6 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
         return;
       }
 
-      // dacă backend-ul îți returnează comment-ul creat, asta merge direct.
       const addedComment = await response.json();
 
       setLocalComments(prev => {
@@ -212,15 +257,24 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
     setTimeout(() => setCopied(false), 1500);
   };
 
+  // likes pentru modal: dacă backend trimite user objects, le afișăm numele; dacă nu, afișăm id-uri
+  const likedByForModal = useMemo(() => {
+    if (!Array.isArray(post?.likedBy)) return [];
+    const list = post.likedBy.map(toUserDisplay).filter(Boolean);
+    // fallback dacă nu avem user objects
+    if (list.length === 0) return currentLikedByIds.map(id => ({ id, name: `User ID: ${id}` }));
+    return list;
+  }, [post?.likedBy, currentLikedByIds]);
+
   return (
     <div id={`scroll-${id}`} className={styles.postCard}>
       {/* Likes Modal */}
       <Modal isOpen={isLikesModalOpen} onClose={() => setLikesModalOpen(false)} title="People Who Liked This">
         <div className={styles.userList}>
-          {currentLikedBy.map((userId) => (
-            <div key={userId} className={styles.userListItem}>
+          {likedByForModal.map((u) => (
+            <div key={u.id ?? u.name} className={styles.userListItem}>
               <FiUser className={styles.avatar} />
-              <span style={{ marginLeft: '0.75rem' }}>User ID: {userId}</span>
+              <span style={{ marginLeft: '0.75rem' }}>{u.name}</span>
             </div>
           ))}
         </div>
@@ -284,7 +338,7 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
 
       {/* Stats */}
       <div className={styles.postStats}>
-        <span onClick={() => currentLikedBy.length > 0 && setLikesModalOpen(true)}>{counts.likes} Likes</span>
+        <span onClick={() => counts.likes > 0 && setLikesModalOpen(true)}>{counts.likes} Likes</span>
         <span onClick={() => setCommentSectionVisible(!isCommentSectionVisible)}>{counts.comments} Comments</span>
         <span>{post?.shares || 0} Shares</span>
       </div>
@@ -338,7 +392,7 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment }) => {
         <div className={styles.commentList}>
           {comments.map((comment) => {
             const commentAuthor = comment?.author ?? { id: null, name: "Unknown user", photoUrl: null };
-            const isCommentOwner = !!(loggedInUser && commentAuthor?.id && commentAuthor.id === loggedInUser.id);
+            const isCommentOwner = !!(loggedInUser && commentAuthor?.id && Number(commentAuthor.id) === Number(loggedInUser.id));
             const canDeleteComment = isPostOwner || isCommentOwner || isAdmin;
 
             return (

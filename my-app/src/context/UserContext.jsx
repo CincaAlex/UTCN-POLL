@@ -3,49 +3,89 @@ import { jwtDecode } from 'jwt-decode';
 
 export const UserContext = createContext();
 
+const fetchFullUserByEmail = async (email, token) => {
+  const res = await fetch(`/api/users/email/${encodeURIComponent(email)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) throw new Error(`Failed to fetch full user: ${res.status}`);
+  return await res.json();
+};
+
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+useEffect(() => {
     const initFromToken = async () => {
         if (!token) {
-        setLoading(false);
-        return;
-        }
-
-        try {
-        const decodedToken = jwtDecode(token);
-        const currentTime = Date.now() / 1000;
-
-        if (decodedToken.exp && decodedToken.exp < currentTime) {
-            logout();
+            setLoading(false);
             return;
         }
 
-        // ✅ NU mai facem fetch la /api/users/email/... (îți dă 404 și te deloghează)
-        // păstrăm un user minim din token
-        setUser(prev => prev ?? { email: decodedToken.sub, name: decodedToken.sub, userType: 'USER' });
+        try {
+            const decodedToken = jwtDecode(token);
+            const currentTime = Date.now() / 1000;
+
+            if (decodedToken.exp && decodedToken.exp < currentTime) {
+                logout();
+                return;
+            }
+
+            // ✅ FETCH USER COMPLET DIN DB
+            const email = decodedToken.sub;
+            const fullUser = await fetchFullUserByEmail(email, token);
+            setUser(fullUser);
 
         } catch (e) {
-        console.error("Token decode error:", e);
-        logout();
-        return;
+            console.error("Token decode error:", e);
+            // Dacă fetch-ul eșuează, păstrăm un user minim
+            const decodedToken = jwtDecode(token);
+            setUser({ email: decodedToken.sub, name: decodedToken.sub, userType: 'USER' });
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
     };
 
     initFromToken();
-    }, [token]);
+}, [token]);
 
 
-    const login = (userData, userToken) => {
-        setToken(userToken);
-        setUser(userData);
-        localStorage.setItem('token', userToken);
+    const fetchFullUserByEmail = async (email, token) => {
+    const res = await fetch(`/api/users/email/${encodeURIComponent(email)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+        throw new Error(`Failed to fetch user by email: ${res.status}`);
+    }
+
+    return await res.json();
     };
+
+
+    const login = async (minimalUser, token) => {
+    // 1) salvează token
+    localStorage.setItem("token", token);
+    setToken(token);
+
+    // 2) fetch user complet din DB
+    try {
+        const email = minimalUser?.email;
+        if (!email) throw new Error("Missing email in login()");
+
+        const fullUser = await fetchFullUserByEmail(email, token);
+
+        // IMPORTANT: acum user are id, points, etc.
+        setUser(fullUser);
+    } catch (e) {
+        console.error("Could not fetch full user. Keeping minimal user.", e);
+        setUser(minimalUser); // fallback ca să nu crape UI-ul
+    }
+    };
+
+
 
     const logout = () => {
         setToken(null);
