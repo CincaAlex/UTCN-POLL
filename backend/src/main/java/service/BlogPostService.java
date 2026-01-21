@@ -32,6 +32,11 @@ public class BlogPostService {
         return new ResultError(true, "Post created successfully");
     }
 
+    public BlogPost savePost(BlogPost post) {
+        return blogPostRepository.save(post);
+    }
+
+
     public ResultError editPost(int postId, String newContent) {
         Optional<BlogPost> postOpt = blogPostRepository.findById(postId);
         if (postOpt.isEmpty()) return new ResultError(false, "Post not found");

@@ -1,6 +1,9 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -12,49 +15,76 @@ public class BlogPost {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
+    // ✅ NEW: title
+    @Column(nullable = false, length = 255)
+    private String title;
+
+    // (în DB rămâne "content", dar în API îl expunem ca "body")
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    // ✅ createdAt setat automat la insert
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (title == null) title = "";
+        if (content == null) content = "";
+    }
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comments> comments = new ArrayList<>();
 
-    // In loc de set<Integer>, salvam userii care au dat like
     @ElementCollection
     @CollectionTable(name = "post_likes", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "user_id")
     private Set<Integer> likedBy = new HashSet<>();
 
-    public BlogPost() {} // obligatoriu pentru JPA
+    public BlogPost() {}
 
-    public BlogPost(User author, String content) {
+    // ✅ constructor nou: title + body
+    public BlogPost(User author, String title, String body) {
         this.author = author;
-        this.content = content;
+        this.title = title;
+        this.content = body;
         this.createdAt = LocalDateTime.now();
     }
 
-    // --- Getteri și setteri ---
     public int getId() { return id; }
-
     public User getAuthor() { return author; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public List<Comments> getComments() { return comments; }
+    public int getLikes() { return likedBy.size(); }
+    public boolean isLikedBy(int id) { return likedBy.contains(id); }
 
+    public void setAuthor(User author) { this.author = author; }
+
+    // ✅ API fields expected by frontend
+    public String getTitle() { return title; }
+
+    @JsonProperty("body")
+    public String getBody() { return content; }
+
+    public void setTitle(String title) { this.title = title; }
+
+    @JsonProperty("body")
+    public void setBody(String body) { this.content = body; }
+
+    // ❌ opțional: ascundem vechiul "content" ca să nu ai și body și content în JSON
+    @JsonIgnore
     public String getContent() { return content; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public List<Comments> getComments() { return comments; }
-
-    public int getLikes() { return likedBy.size(); }
-
-    public boolean isLikedBy(int id) { return  likedBy.contains(id); }
+    @JsonIgnore
+    public void setContent(String content) { this.content = content; }
 
     public ResultError editContent(String content) {
-        if (content.trim().isEmpty()) {
+        if (content == null || content.trim().isEmpty()) {
             return new ResultError(false, "Content cannot be empty");
         }
         this.content = content;
