@@ -125,9 +125,12 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
 
   // reset override local când se schimbă post-ul (sau când primim update din parent)
   useEffect(() => {
+    console.log('🔄 [POSTCARD] Reset triggered for post ID:', id);
+    console.log('🔄 [POSTCARD] post.likedBy:', post?.likedBy);
+    console.log('🔄 [POSTCARD] baseLikedByIds:', baseLikedByIds);
     setLocalComments(null);
     setLocalLikedByIds(null);
-  }, [id, post?.likedBy]);
+  }, [id, post?.likedBy, baseLikedByIds]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -143,9 +146,30 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
   const getAvatarSrc = (avatarUrl) => avatarUrl || DEFAULT_AVATAR;
 
   const handleLike = async () => {
-    if (!token || !id || !hasMyUserId) return;
+    console.log('🔵 [LIKE] Starting like toggle...');
+    console.log('🔵 [LIKE] Token exists:', !!token);
+    console.log('🔵 [LIKE] Post ID:', id);
+    console.log('🔵 [LIKE] My User ID:', myUserId);
+    console.log('🔵 [LIKE] Has My User ID:', hasMyUserId);
+    
+    if (!token || !id || !hasMyUserId) {
+      console.log('🔴 [LIKE] Missing required data, aborting');
+      return;
+    }
 
     try {
+      console.log('🔵 [LIKE] Sending request to /api/posts/' + id + '/like');
+      
+      // ✅ Optimistic update pentru UI instant
+      const newLikedByIds = baseLikedByIds.includes(myUserId)
+        ? baseLikedByIds.filter(uid => uid !== myUserId)
+        : [...baseLikedByIds, myUserId];
+      
+      console.log('🟢 [LIKE] Optimistic - Base:', baseLikedByIds);
+      console.log('🟢 [LIKE] Optimistic - New:', newLikedByIds);
+      
+      setLocalLikedByIds(newLikedByIds);
+      
       const response = await fetch(`/api/posts/${id}/like`, {
         method: 'POST',
         headers: {
@@ -153,27 +177,33 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
         }
       });
 
+      console.log('🔵 [LIKE] Response status:', response.status);
+
       if (!response.ok) {
-        console.error('Failed to toggle like');
+        console.error('🔴 [LIKE] Failed to toggle like, status:', response.status);
+        const errorText = await response.text();
+        console.error('🔴 [LIKE] Error response:', errorText);
+        // Rollback
+        setLocalLikedByIds(baseLikedByIds);
         return;
       }
 
-      // ✅ Backend returnează post-ul updatat cu likedBy
+      // ✅ Backend returnează post-ul complet cu likedBy
       const updatedPost = await response.json();
-      
-      // ✅ Actualizează local optimistic
-      const newLikedByIds = baseLikedByIds.includes(myUserId)
-        ? baseLikedByIds.filter(uid => uid !== myUserId)
-        : [...baseLikedByIds, myUserId];
-      
-      setLocalLikedByIds(newLikedByIds);
+      console.log('🟢 [LIKE] Updated post from backend:', updatedPost);
+      console.log('🟢 [LIKE] Updated likedBy from backend:', updatedPost?.likedBy);
 
-      // ✅ Notifică parent-ul (Homepage) să actualizeze state-ul global
-      if (onToggleLike && updatedPost?.likedBy) {
+      // ✅ Notifică Homepage să actualizeze state-ul global
+      if (onToggleLike && updatedPost?.likedBy !== undefined) {
+        console.log('🟢 [LIKE] Calling onToggleLike with likedBy:', updatedPost.likedBy);
         onToggleLike(id, updatedPost.likedBy);
+      } else {
+        console.warn('⚠️ [LIKE] onToggleLike NOT called - missing data');
       }
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error('🔴 [LIKE] Error toggling like:', error);
+      // Rollback
+      setLocalLikedByIds(baseLikedByIds);
     }
   };
 

@@ -28,6 +28,7 @@ const Homepage = () => {
   // Fetch posts
   useEffect(() => {
     const fetchPosts = async () => {
+      console.log('📥 [HOMEPAGE] Fetching posts...');
       setPostsLoading(true);
       try {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -35,6 +36,11 @@ const Homepage = () => {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('📥 [HOMEPAGE] Fetched posts count:', data?.length);
+          
+          if (data && data.length > 0) {
+            console.log('📥 [HOMEPAGE] First post likedBy:', data[0]?.likedBy);
+          }
 
           // normalize: dacă backend returnează content, dar unele posturi vechi au body,
           // păstrăm content ca sursă principală
@@ -44,13 +50,14 @@ const Homepage = () => {
           }));
 
           const sortedData = normalized.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          console.log('📥 [HOMEPAGE] Posts set in state');
           setPosts(sortedData);
         } else {
-          console.error('Failed to fetch posts', response.status);
+          console.error('📥 [HOMEPAGE] Failed to fetch posts', response.status);
           setPosts([]);
         }
       } catch (error) {
-        console.error('Error fetching posts:', error);
+        console.error('📥 [HOMEPAGE] Error fetching posts:', error);
         setPosts([]);
       } finally {
         setPostsLoading(false);
@@ -249,14 +256,24 @@ const Homepage = () => {
 
   // ✅ Like handler - actualizează state-ul după toggle
   const handleToggleLike = async (postId, updatedLikedBy) => {
+    console.log('🟡 [HOMEPAGE] handleToggleLike called');
+    console.log('🟡 [HOMEPAGE] Post ID:', postId);
+    console.log('🟡 [HOMEPAGE] Updated likedBy:', updatedLikedBy);
+    
     // updatedLikedBy vine de la PostCard după ce face optimistic update
-    setPosts(prev =>
-      prev.map(post =>
+    setPosts(prev => {
+      const updated = prev.map(post =>
         post.id === postId
           ? { ...post, likedBy: updatedLikedBy }
           : post
-      )
-    );
+      );
+      
+      console.log('🟡 [HOMEPAGE] Posts state updated');
+      const updatedPost = updated.find(p => p.id === postId);
+      console.log('🟡 [HOMEPAGE] Updated post likedBy:', updatedPost?.likedBy);
+      
+      return updated;
+    });
   };
 
   // Sorting & search

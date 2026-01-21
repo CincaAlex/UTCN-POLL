@@ -19,15 +19,12 @@ public class BlogPost {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-    // ✅ NEW: title
     @Column(nullable = false, length = 255)
     private String title;
 
-    // (în DB rămâne "content", dar în API îl expunem ca "body")
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    // ✅ createdAt setat automat la insert
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -48,7 +45,6 @@ public class BlogPost {
 
     public BlogPost() {}
 
-    // ✅ constructor nou: title + body
     public BlogPost(User author, String title, String body) {
         this.author = author;
         this.title = title;
@@ -63,9 +59,11 @@ public class BlogPost {
     public int getLikes() { return likedBy.size(); }
     public boolean isLikedBy(int id) { return likedBy.contains(id); }
 
+    // ✅ IMPORTANT: Expune likedBy în JSON pentru frontend
+    public Set<Integer> getLikedBy() { return likedBy; }
+
     public void setAuthor(User author) { this.author = author; }
 
-    // ✅ API fields expected by frontend
     public String getTitle() { return title; }
 
     @JsonProperty("body")
@@ -76,7 +74,6 @@ public class BlogPost {
     @JsonProperty("body")
     public void setBody(String body) { this.content = body; }
 
-    // ❌ opțional: ascundem vechiul "content" ca să nu ai și body și content în JSON
     @JsonIgnore
     public String getContent() { return content; }
 

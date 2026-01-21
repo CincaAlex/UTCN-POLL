@@ -38,7 +38,6 @@ public class BlogPostController {
                 .orElseGet(() -> ResponseEntity.status(404).body("Post not found"));
     }
 
-    // ✅ FIX REAL: create post ia doar title/content + author din JWT
     @PostMapping
     public ResponseEntity<?> createPost(@RequestBody CreatePostRequest req, Authentication auth) {
         if (auth == null || auth.getPrincipal() == null) {
@@ -56,7 +55,6 @@ public class BlogPostController {
         post.setTitle(req.title() == null ? "" : req.title().trim());
         post.setContent(req.content() == null ? "" : req.content().trim());
 
-        // IMPORTANT: vrem să returnăm postarea salvată (cu id), nu doar ResultError
         BlogPost saved = blogPostService.savePost(post);
         return ResponseEntity.ok(saved);
     }
@@ -71,17 +69,39 @@ public class BlogPostController {
         return ResponseEntity.ok(blogPostService.addComment(id, comment));
     }
 
+    // ✅ FIX: Returnează post-ul complet cu likedBy după toggle
     @PostMapping("/{id}/like")
-    public ResponseEntity<ResultError> toggleLike(@PathVariable int id, java.security.Principal principal) {
-        return ResponseEntity.ok(blogPostService.toggleLikeByEmail(id, principal.getName()));
-    }
+    public ResponseEntity<?> toggleLike(@PathVariable int id, java.security.Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(new ResultError(false, "Unauthorized"));
+        }
 
+        try {
+            // Toggle like-ul
+            ResultError result = blogPostService.toggleLikeByEmail(id, principal.getName());
+
+            if (!result.isSuccess()) {
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // ✅ Returnează post-ul complet actualizat cu likedBy
+            Optional<BlogPost> updatedPost = blogPostService.getPostById(id);
+
+            if (updatedPost.isEmpty()) {
+                return ResponseEntity.status(404).body(new ResultError(false, "Post not found"));
+            }
+
+            return ResponseEntity.ok(updatedPost.get());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ResultError(false, "Error toggling like: " + e.getMessage()));
+        }
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ResultError> deletePost(@PathVariable int id) {
         return ResponseEntity.ok(blogPostService.deletePost(id));
     }
 
-    // ✅ DTO simplu: NU e funcție, e doar formatul request-ului
     public record CreatePostRequest(String title, String content) {}
 }
