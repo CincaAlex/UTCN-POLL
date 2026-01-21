@@ -53,7 +53,9 @@ function Register() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
 
@@ -61,8 +63,41 @@ function Register() {
       setErrors(validationErrors);
     } else {
       setErrors({});
-      console.log('Data sent:', formData);
-      navigate('/homepage');
+      setIsSubmitting(true);
+
+      // Pregătim datele pentru @RequestParam
+      const params = new URLSearchParams();
+      params.append('name', formData.name);
+      params.append('email', formData.email);
+      params.append('password', formData.password);
+
+      try {
+        const response = await fetch('http://localhost:8080/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: params,
+        });
+
+        const data = await response.json(); // Returnează un obiect ResultError
+
+        if (response.ok && data.success) {
+          // Backend-ul trimite un cod de verificare prin email în acest punct
+          alert(data.message); // "User created! Verification code sent to email."
+          
+          // Recomandare: Navighează către o pagină unde utilizatorul introduce codul primit
+          navigate('/verify', { state: { email: formData.email } });
+        } else {
+          // Gestionează erori precum "Email already registered"
+          setErrors({ general: data.message || 'Registration failed' });
+        }
+      } catch (error) {
+        console.error("Error connecting to backend:", error);
+        setErrors({ general: 'Server connection failed.' });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 

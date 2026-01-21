@@ -53,30 +53,50 @@ function Login() {
       setErrors({});
       setIsSubmitting(true);
       
-      // *** 2. DETERMINE USER ROLE BASED ON EMAIL ***
-      const enteredEmail = formData.email.toLowerCase();
-      const userRole = ADMIN_EMAILS.includes(enteredEmail) ? 'admin' : 'user';
+      // Pregătim datele pentru @RequestParam (application/x-www-form-urlencoded)
+      const params = new URLSearchParams();
+      params.append('email', formData.email);
+      params.append('password', formData.password);
 
       try {
-        // In a real app, you would send formData to the API. 
-        // Here, we simulate success and pass the determined role.
-        
-        // 1. Simulate API call/Login action and pass the role
-        await login(userRole); 
-        
-        // 2. Navigate to the desired page after successful login
-        // You might want to navigate to a different page based on the role here!
-        navigate('/homepage');
+        const response = await fetch('http://localhost:8080/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: params,
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // 'data.message' conține token-ul JWT conform AuthService.java
+          const token = data.message;
+          
+          // Salvăm token-ul în localStorage pentru persistenta sesiunii
+          localStorage.setItem('token', token);
+
+          // Determinăm rolul (poți păstra logica ta sau decoda token-ul mai târziu)
+          const enteredEmail = formData.email.toLowerCase();
+          const userRole = ADMIN_EMAILS.includes(enteredEmail) ? 'admin' : 'user';
+
+          // Actualizăm contextul global cu datele primite
+          await login(userRole); 
+          
+          navigate('/homepage');
+        } else {
+          // Afișăm eroarea venită de la backend (ex: "Invalid credentials")
+          setErrors({ general: data.message || 'Login failed' });
+        }
         
       } catch (error) {
-        // This catch block handles errors thrown by the simulated `login` function
-        console.error("Login failed:", error);
-        setErrors(prev => ({ ...prev, general: 'Login failed. Please check your credentials.' }));
+        console.error("Connection error:", error);
+        setErrors({ general: 'Server is not responding. Please try again later.' });
       } finally {
         setIsSubmitting(false);
       }
     }
-  };
+};
 
   return (
     <div className="login-container">
