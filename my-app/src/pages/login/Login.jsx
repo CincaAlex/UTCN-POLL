@@ -3,14 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import './Login.css';
 
-// 1. DEFINE ADMIN EMAILS
-// In a real application, this list would come from a secure API endpoint.
-const ADMIN_EMAILS = [
-    'admin@utcn.ro',
-    'admin@campus.utcluj.ro',
-    'another.admin@utcn.ro',
-];
-
 function Login() {
   const navigate = useNavigate();
   const { login } = useContext(UserContext);
@@ -21,7 +13,6 @@ function Login() {
   });
 
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleChange = (e) => {
     setFormData({
@@ -51,52 +42,46 @@ function Login() {
       setErrors(validationErrors);
     } else {
       setErrors({});
-      setIsSubmitting(true);
       
-      // Pregătim datele pentru @RequestParam (application/x-www-form-urlencoded)
-      const params = new URLSearchParams();
-      params.append('email', formData.email);
-      params.append('password', formData.password);
-
       try {
-        const response = await fetch('http://localhost:8080/auth/login', {
+        const response = await fetch('/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-          body: params,
+          body: new URLSearchParams({
+            email: formData.email,
+            password: formData.password,
+          }),
         });
 
         const data = await response.json();
 
         if (response.ok && data.success) {
-          // 'data.message' conține token-ul JWT conform AuthService.java
           const token = data.message;
           
-          // Salvăm token-ul în localStorage pentru persistenta sesiunii
-          localStorage.setItem('token', token);
+          const userResponse = await fetch(`/users/email/${formData.email}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
 
-          // Determinăm rolul (poți păstra logica ta sau decoda token-ul mai târziu)
-          const enteredEmail = formData.email.toLowerCase();
-          const userRole = ADMIN_EMAILS.includes(enteredEmail) ? 'admin' : 'user';
-
-          // Actualizăm contextul global cu datele primite
-          await login(userRole); 
-          
-          navigate('/homepage');
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            login(userData, token); 
+            navigate('/homepage');
+          } else {
+            setErrors({ form: 'Failed to fetch user data after login.' });
+          }
         } else {
-          // Afișăm eroarea venită de la backend (ex: "Invalid credentials")
-          setErrors({ general: data.message || 'Login failed' });
+          setErrors({ form: data.message || 'Login failed' });
         }
-        
       } catch (error) {
-        console.error("Connection error:", error);
-        setErrors({ general: 'Server is not responding. Please try again later.' });
-      } finally {
-        setIsSubmitting(false);
+        console.error('Login error:', error);
+        setErrors({ form: 'An error occurred during login.' });
       }
     }
-};
+  };
 
   return (
     <div className="login-container">
@@ -128,8 +113,8 @@ function Login() {
           {errors.password && <small className="error-text">{errors.password}</small>}
         </div>
 
-        <button type="submit" className="login-btn" disabled={isSubmitting}>
-          {isSubmitting ? 'Logging In...' : 'Login'}
+        <button type="submit" className="login-btn">
+          Login
         </button>
       </form>
     </div>

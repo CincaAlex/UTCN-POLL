@@ -1,121 +1,87 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 export const UserContext = createContext();
 
-// Generate mock user
-const generateMockUserData = (role) => {
-    const isAdmin = role === 'admin';
-
-    return {
-        username: isAdmin ? 'Secretariat AC' : 'HighRoller_777',
-        name: isAdmin ? 'Secretariat AC' : 'HighRoller_777',
-        role,
-        photoUrl: isAdmin
-            ? 'https://i.pravatar.cc/150?u=secretariat'
-            : 'https://placehold.co/150x150/2b2d3e/CF1F23?text=HR',
-        tokens: 1450230,
-        friends: 100,
-
-        votedPolls: [], // 🔥 NEW
-
-        pollHistory: [
-            { month: 'Jan', winnings: 4000 },
-            { month: 'Feb', winnings: 3000 },
-            { month: 'Mar', winnings: 5500 },
-            { month: 'Apr', winnings: 4800 },
-            { month: 'May', winnings: 9000 },
-            { month: 'Jun', winnings: 12500 },
-        ],
-
-        badges: [
-            { name: 'High Roller', symbol: '💎', className: 'badge-gold' },
-            { name: 'On Fire', symbol: '🔥', className: 'badge-red' },
-            { name: 'Poker Shark', symbol: '🦈', className: 'badge-blue' },
-        ]
-    };
-};
-
-// Load user from storage
-const loadInitialUserDataAndSetState = async (setUser, setLoading) => {
-    setLoading(true);
-    const storedUser = localStorage.getItem('currentUser');
-
-    if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        parsedUser.role = parsedUser.role || 'user';
-        parsedUser.votedPolls = parsedUser.votedPolls || [];
-
-        setUser(parsedUser);
-    } else {
-        setUser(null);
-    }
-
-    setLoading(false);
-};
-
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
-    const login = (role = 'user') => {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                const newUser = generateMockUserData(role);
-                setUser(newUser);
-                localStorage.setItem('currentUser', JSON.stringify(newUser));
-                resolve(newUser);
-            }, 1000);
-        });
-    };
+    useEffect(() => {
+        const fetchUser = async () => {
+            if (token) {
+                try {
+                    const decodedToken = jwtDecode(token);
+                    const currentTime = Date.now() / 1000;
+                    if (decodedToken.exp < currentTime) {
+                        // Token expired
+                        logout();
+                        return;
+                    }
 
-    const updateUser = (newData) => {
-        setUser(newData);
-        localStorage.setItem('currentUser', JSON.stringify(newData));
-    };
+                    // Token is valid, fetch user data
+                    // Assuming the email is in the 'sub' field of the token
+                    const email = decodedToken.sub;
+                    const response = await fetch(`/users/email/${email}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
 
-    const addPollBet = ({ pollId, optionIds, betAmount }) => {
-        if (!user) return;
-
-        // Prevent double voting
-        const alreadyVoted = user.votedPolls.some(p => p.pollId === pollId);
-        if (alreadyVoted) return;
-
-        if (user.tokens < betAmount) {
-            throw new Error('Not enough tokens');
-        }
-
-        const updatedUser = {
-            ...user,
-            tokens: user.tokens - betAmount,
-            votedPolls: [
-                ...user.votedPolls,
-                {
-                    pollId,
-                    optionIds,
-                    betAmount,
-                    votedAt: new Date().toISOString()
+                    if (response.ok) {
+                        const userData = await response.json();
+                        setUser(userData);
+                    } else {
+                        // Failed to fetch user, maybe token is invalid on the server
+                        logout();
+                    }
+                } catch (error) {
+                    console.error("Token validation or user fetch error:", error);
+                    logout();
                 }
-            ]
+            }
+            setLoading(false);
         };
 
-        setUser(updatedUser);
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        fetchUser();
+    }, [token]);
+
+    const login = (userData, userToken) => {
+        setToken(userToken);
+        setUser(userData);
+        localStorage.setItem('token', userToken);
     };
 
     const logout = () => {
+        setToken(null);
         setUser(null);
-        localStorage.removeItem('currentUser');
-        setLoading(false);
+        localStorage.removeItem('token');
     };
 
-    useEffect(() => {
-        loadInitialUserDataAndSetState(setUser, setLoading);
-    }, []);
+    const updateUser = (newData) => {
+        setUser(prevUser => {
+            const updatedUser = { ...prevUser, ...newData };
+            // Note: This only updates the context state.
+            // To persist changes, you would typically make an API call here
+            // and then update the state with the response.
+            return updatedUser;
+        });
+    };
+    
+    // The addPollBet function needs to be re-evaluated as it was based on mock data.
+    // For now, it will be a placeholder.
+    const addPollBet = ({ pollId, optionIds, betAmount }) => {
+        console.log("Voting feature needs to be connected to the backend.", { pollId, optionIds, betAmount });
+        // This would involve making an API call to the backend,
+        // and then updating the user's token/points state upon success.
+    };
 
     return (
         <UserContext.Provider
             value={{
                 user,
+                token,
                 loading,
                 login,
                 logout,
