@@ -10,8 +10,10 @@ import java.util.Random;
 @Service
 public class SpinService {
 
-    private final UserRepository userRepository;
-    private final Random random = new Random();
+    public SpinService() {}
+
+    private UserRepository userRepository;
+    private Random random = new Random();
 
     public SpinService(UserRepository userRepository) {
         this.userRepository = userRepository;

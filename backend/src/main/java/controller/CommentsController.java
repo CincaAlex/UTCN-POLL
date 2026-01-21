@@ -14,7 +14,9 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class CommentsController {
 
-    private final CommentsService commentsService;
+    public CommentsController() {}
+
+    private CommentsService commentsService;
 
     public CommentsController(CommentsService commentsService) {
         this.commentsService = commentsService;

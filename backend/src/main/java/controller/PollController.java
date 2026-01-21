@@ -15,7 +15,9 @@ import java.util.Optional;
 @RequestMapping("/polls")
 public class PollController {
 
-    private final PollService pollService;
+    public PollController(){}
+
+    private PollService pollService;
 
     public PollController(PollService pollService) {
         this.pollService = pollService;

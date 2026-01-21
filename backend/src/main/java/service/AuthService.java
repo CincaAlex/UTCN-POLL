@@ -12,9 +12,11 @@ import java.util.Optional;
 @Service
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final UserService userService;
-    private final MailService mailService;
+    public AuthService() {}
+
+    private UserRepository userRepository;
+    private UserService userService;
+    private MailService mailService;
 
     public AuthService(UserRepository userRepository, UserService userService, MailService mailService) {
         this.userRepository = userRepository;

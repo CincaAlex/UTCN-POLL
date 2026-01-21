@@ -12,8 +12,10 @@ import java.util.stream.Collectors;
 @Service
 public class LeaderboardService {
 
-    private final UserRepository userRepository;
-    private final AchievementRepository achievementRepository;
+    public LeaderboardService() {}
+
+    private UserRepository userRepository;
+    private AchievementRepository achievementRepository;
 
     public LeaderboardService(UserRepository userRepository, AchievementRepository achievementRepository) {
         this.userRepository = userRepository;

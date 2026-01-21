@@ -14,8 +14,10 @@ import java.util.Optional;
 @Service
 public class CommentsService {
 
-    private final CommentsRepository commentsRepository;
-    private final BlogPostRepository blogPostRepository;
+    public CommentsService(){}
+
+    private CommentsRepository commentsRepository;
+    private BlogPostRepository blogPostRepository;
 
     public CommentsService(CommentsRepository commentsRepository, BlogPostRepository blogPostRepository) {
         this.commentsRepository = commentsRepository;

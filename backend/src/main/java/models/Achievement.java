@@ -45,8 +45,7 @@ public class Achievement {
     @ManyToMany(mappedBy = "earnedAchievements")
     private Set<User> usersEarned = new HashSet<>();
 
-    public Achievement() {
-        this.createdAt = LocalDateTime.now();
+    public Achievement(){
     }
 
     public Achievement(String name, String description, AchievementType type, BadgeTier tier) {

@@ -16,7 +16,9 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class BlogPostController {
 
-    private final BlogPostService blogPostService;
+    public BlogPostController() {};
+
+    private BlogPostService blogPostService;
 
     public BlogPostController(BlogPostService blogPostService) {
         this.blogPostService = blogPostService;

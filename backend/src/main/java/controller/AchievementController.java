@@ -14,7 +14,9 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class AchievementController {
 
-    private final AchievementService achievementService;
+    public AchievementController(){}
+    
+    private AchievementService achievementService;
 
     public AchievementController(AchievementService achievementService) {
         this.achievementService = achievementService;
