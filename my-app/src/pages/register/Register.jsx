@@ -83,7 +83,6 @@ const [isSubmitting, setIsSubmitting] = useState(false);
         const data = await response.json(); // Returnează un obiect ResultError
 
         if (response.ok && data.success) {
-          // Backend-ul trimite un cod de verificare prin email în acest punct
           alert(data.message); // "User created! Verification code sent to email."
           
           // Recomandare: Navighează către o pagină unde utilizatorul introduce codul primit
