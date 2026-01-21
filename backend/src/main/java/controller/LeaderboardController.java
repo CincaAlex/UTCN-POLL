@@ -14,9 +14,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class LeaderboardController {
 
-    public LeaderboardController() {}
-
-    private LeaderboardService leaderboardService;
+    private final LeaderboardService leaderboardService;
 
     public LeaderboardController(LeaderboardService leaderboardService) {
         this.leaderboardService = leaderboardService;

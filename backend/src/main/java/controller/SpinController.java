@@ -11,10 +11,8 @@ import service.UserService;
 @RequestMapping("/spin")
 public class SpinController {
 
-    public SpinController() {}
-
-    private SpinService spinService;
-    private UserService userService;
+    private final SpinService spinService;
+    private final UserService userService;
 
     public SpinController(SpinService spinService, UserService userService) {
         this.spinService = spinService;

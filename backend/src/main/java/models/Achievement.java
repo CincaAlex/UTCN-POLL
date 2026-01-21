@@ -42,9 +42,6 @@ public class Achievement {
     @Column(name = "is_active")
     private boolean isActive = true;
 
-    @ManyToMany(mappedBy = "earnedAchievements")
-    private Set<User> usersEarned = new HashSet<>();
-
     public Achievement(){
     }
 
@@ -211,7 +208,4 @@ public class Achievement {
 
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
-
-    public Set<User> getUsersEarned() { return usersEarned; }
-    public void setUsersEarned(Set<User> usersEarned) { this.usersEarned = usersEarned; }
 }

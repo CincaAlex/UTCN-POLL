@@ -12,8 +12,7 @@ import java.util.Optional;
 @Service
 public class VoteService {
 
-    public VoteService() {}
-    private PollRepository pollRepository;
+    private final PollRepository pollRepository;
 
     public VoteService(PollRepository pollRepository) {
         this.pollRepository = pollRepository;

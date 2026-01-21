@@ -8,10 +8,8 @@ import java.util.Random;
 @Service
 public class MailService {
 
-    public MailService(){}
-
-    private JavaMailSender mailSender;
-    private Random random = new Random();
+    private final JavaMailSender mailSender;
+    private final Random random = new Random();
 
     public MailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;

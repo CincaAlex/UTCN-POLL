@@ -13,9 +13,7 @@ import java.util.Optional;
 @Service
 public class BlogPostService {
 
-    public BlogPostService() {}
-
-    private BlogPostRepository blogPostRepository;
+    private final BlogPostRepository blogPostRepository;
 
     public BlogPostService(BlogPostRepository blogPostRepository) {
         this.blogPostRepository = blogPostRepository;

@@ -11,9 +11,7 @@ import java.util.Optional;
 @Service
 public class AchievementService {
 
-    public AchievementService() {}
-    
-    private AchievementRepository achievementRepository;
+    private final AchievementRepository achievementRepository;
 
     public AchievementService(AchievementRepository achievementRepository) {
         this.achievementRepository = achievementRepository;

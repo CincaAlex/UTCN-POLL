@@ -12,10 +12,8 @@ import java.util.stream.Collectors;
 @Service
 public class LeaderboardService {
 
-    public LeaderboardService() {}
-
-    private UserRepository userRepository;
-    private AchievementRepository achievementRepository;
+    private final UserRepository userRepository;
+    private final AchievementRepository achievementRepository;
 
     public LeaderboardService(UserRepository userRepository, AchievementRepository achievementRepository) {
         this.userRepository = userRepository;
@@ -55,7 +53,7 @@ public class LeaderboardService {
      * Get leaderboard for specific achievement type
      */
     public List<Map<String, Object>> getAchievementTypeLeaderboard(Achievement.AchievementType type, int limit) {
-        List<Achievement> typeAchievements = achievementRepository.findByTypeAndIsActive(type);
+        List<Achievement> typeAchievements = achievementRepository.findByTypeAndIsActiveTrue(type);
         Set<Integer> typeAchievementIds = typeAchievements.stream()
                 .map(Achievement::getId)
                 .collect(Collectors.toSet());

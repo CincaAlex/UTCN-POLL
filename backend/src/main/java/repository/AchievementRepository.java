@@ -16,13 +16,13 @@ public interface AchievementRepository extends JpaRepository<Achievement, Intege
     List<Achievement> findByIsActiveTrue();
 
     // Find active achievement by ID
-    Optional<Achievement> findByIdAndIsActive(int id);
+    Optional<Achievement> findByIdAndIsActiveTrue(int id);
 
     // Find achievements by type and active status
-    List<Achievement> findByTypeAndIsActive(Achievement.AchievementType type);
+    List<Achievement> findByTypeAndIsActiveTrue(Achievement.AchievementType type);
 
     // Find achievements by tier and active status
-    List<Achievement> findByTierAndIsActive(Achievement.BadgeTier tier);
+    List<Achievement> findByTierAndIsActiveTrue(Achievement.BadgeTier tier);
 
     // Admin methods (no active filter)
     List<Achievement> findByType(Achievement.AchievementType type);
