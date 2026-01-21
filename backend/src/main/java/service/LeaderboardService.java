@@ -2,7 +2,6 @@ package service;
 
 import models.User;
 import models.Achievement;
-import models.ResultError;
 import org.springframework.stereotype.Service;
 import repository.UserRepository;
 import repository.AchievementRepository;
@@ -38,7 +37,7 @@ public class LeaderboardService {
                 .map(user -> {
                     Map<String, Object> userData = new HashMap<>();
                     userData.put("user", user);
-                    userData.put("achievementCount", user.getEarnedAchievements().size());
+                    userData.put("achievementCount", user.getAchievementList().size());
                     userData.put("totalPoints", user.getPoints());
                     return userData;
                 })
@@ -55,7 +54,7 @@ public class LeaderboardService {
      */
     public List<Map<String, Object>> getAchievementTypeLeaderboard(Achievement.AchievementType type, int limit) {
         List<Achievement> typeAchievements = achievementRepository.findByTypeAndIsActive(type);
-        Set<Integer> achievementIds = typeAchievements.stream()
+        Set<Integer> typeAchievementIds = typeAchievements.stream()
                 .map(Achievement::getId)
                 .collect(Collectors.toSet());
 
@@ -63,8 +62,8 @@ public class LeaderboardService {
 
         return allUsers.stream()
                 .map(user -> {
-                    long count = user.getEarnedAchievements().stream()
-                            .filter(achievement -> achievementIds.contains(achievement.getId()))
+                    long count = user.getAchievementList().stream()
+                            .filter(typeAchievementIds::contains)
                             .count();
 
                     Map<String, Object> userData = new HashMap<>();
@@ -104,8 +103,8 @@ public class LeaderboardService {
         List<User> allUsers = userRepository.findAll();
         List<User> sortedUsers = allUsers.stream()
                 .sorted((a, b) -> Integer.compare(
-                        b.getEarnedAchievements().size(),
-                        a.getEarnedAchievements().size()
+                        b.getAchievementList().size(),
+                        a.getAchievementList().size()
                 ))
                 .collect(Collectors.toList());
 
@@ -161,15 +160,18 @@ public class LeaderboardService {
 
         return allUsers.stream()
                 .map(user -> {
+                    // Fetch achievements for the user
+                    List<Achievement> userAchievements = achievementRepository.findAllById(user.getAchievementList());
+                    
                     // Calculate tier score (higher tiers = more points)
-                    int tierScore = user.getEarnedAchievements().stream()
-                            .mapToInt(achievement -> achievement.getBadgeRank())
+                    int tierScore = userAchievements.stream()
+                            .mapToInt(Achievement::getBadgeRank)
                             .sum();
 
                     Map<String, Object> userData = new HashMap<>();
                     userData.put("user", user);
                     userData.put("tierScore", tierScore);
-                    userData.put("badgeCount", user.getEarnedAchievements().size());
+                    userData.put("badgeCount", user.getAchievementList().size());
                     userData.put("totalPoints", user.getPoints());
                     return userData;
                 })

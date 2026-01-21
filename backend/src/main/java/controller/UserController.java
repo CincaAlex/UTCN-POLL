@@ -49,6 +49,14 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.status(404).body("User not found"));
     }
 
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Object> getUserByEmail(@PathVariable String email) {
+        Optional<User> userOpt = userService.getUserByEmail(email);
+        return userOpt
+                .<ResponseEntity<Object>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(404).body("User not found"));
+    }
+
     @PostMapping("/{id}/addPoints")
     public ResponseEntity<ResultError> addPoints(
             @PathVariable int id,
