@@ -1,232 +1,209 @@
-<<<<<<< HEAD
-# UTCN-POLL Frontend Architecture Overview
+# 🗳️ UTCN Poll Platform
 
-This document provides a comprehensive overview of the frontend structure, key files, and important functionalities of the UTCN-POLL application. The application is built using React, leveraging modern hooks, context API for state management, and React Router for navigation.
+A full-stack web application for creating, voting on, and managing polls with integrated betting mechanics. Built with React and Spring Boot.
 
-## Table of Contents
-1.  [Core Application Setup](#1-core-application-setup)
-    *   [`src/index.jsx`](#srcindexjsx)
-    *   [`src/App.jsx`](#srcappjsx)
-    *   [`src/theme.css`](#srcthemecss)
-2.  [Context Management](#2-context-management)
-    *   [`src/context/ThemeContext.jsx`](#srccontextthemecontextjsx)
-3.  [Custom Hooks](#3-custom-hooks)
-    *   [`src/hooks/useOutsideClick.js`](#srchooksuseoutsideclickjs)
-    *   [`src/hooks/useScrollDirection.js`](#srchooksusescrolldirectionjs)
-4.  [Reusable Components](#4-reusable-components)
-    *   [`src/components/Modal/Modal/Modal.jsx`](#srccomponentsmodalmodaljsx)
-5.  [Application Pages](#5-application-pages)
-    *   [`src/pages/homepage/Homepage.jsx`](#srcpageshomepagehomepagejsx)
-    *   [`src/pages/homepage/CreatePost.jsx`](#srcpageshomepagecreatepostjsx)
-    *   [`src/pages/homepage/PostCard.jsx`](#srcpageshomepagepostcardjsx)
-    *   [`src/pages/login/Login.jsx`](#srcpagesloginloginjsx)
-    *   [`src/pages/register/Register.jsx`](#srcpagesregisterregisterjsx)
-    *   [`src/pages/welcome/Welcome.jsx`](#srcpageswelcomewelcomejsx)
+![React](https://img.shields.io/badge/React-18.x-61DAFB?logo=react)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?logo=spring)
+![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql)
 
----
+## ✨ Features
 
-## 1. Core Application Setup
+### 🎯 Core Functionality
+- **Poll Creation & Management** - Admins can create polls with multiple options and custom durations
+- **Token-Based Betting** - Users bet tokens on poll outcomes for potential rewards
+- **Real-time Results** - Live vote tracking with animated progress bars
+- **Poll Resolution** - Admin panel to select winners and distribute winnings automatically
 
-### `src/index.jsx`
-This is the entry point of the React application.
-*   **Purpose**: Renders the root React component (`App`) into the DOM.
-*   **Key Functions/Components**:
-    *   `ReactDOM.createRoot(document.getElementById('root')).render()`: Initializes the React application and attaches it to the HTML element with the ID 'root'.
-    *   `<React.StrictMode>`: A wrapper component that helps identify potential problems in an application.
-    *   `<ThemeProvider>`: Wraps the entire application, making the theme context available to all components.
-    *   `import './theme.css'`: Imports the global stylesheet.
+### 👥 User Features
+- **Secure Authentication** - JWT-based login and registration system
+- **User Profiles** - Track tokens, voting history, and created polls
+- **Social Feed** - Create posts, comment, and like content
+- **Dark/Light Theme** - Persistent theme switching
 
-### `src/App.jsx`
-The main application component that sets up routing and global theme application.
-*   **Purpose**: Defines the application's routes using `react-router-dom` and applies the current theme to the `body` element.
-*   **Key Functions/Components**:
-    *   `BrowserRouter as Router`, `Routes`, `Route`: Components from `react-router-dom` for declarative routing.
-    *   `useContext(ThemeContext)`: Accesses the global theme state.
-    *   `useEffect(() => { document.body.className = theme; }, [theme])`: A side effect that updates the `body`'s class name whenever the `theme` changes, allowing global CSS variables to apply.
-    *   **Routes Defined**:
-        *   `/`: `Homepage`
-        *   `/login`: `Login`
-        *   `/register`: `Register`
-        *   `/profile`: `Profile`
-        *   `/create-poll`: `UnderConstruction`
-        *   `/dashboard`: `UnderConstruction`
+### 🎨 UI/UX
+- **Responsive Design** - Mobile-first approach with adaptive layouts
+- **Smooth Animations** - Framer Motion powered transitions
+- **Modern Interface** - Clean, intuitive design with custom CSS modules
+- **Interactive Components** - Hover effects, loading states, and real-time updates
 
-### `src/theme.css`
-The global stylesheet for the application.
-*   **Purpose**: Defines base styles, imports a custom font, and sets up CSS variables for light and dark themes.
-*   **Key Features**:
-    *   `@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap')`: Imports the Poppins font from Google Fonts.
-    *   `body.light` and `body.dark` classes: Define a set of CSS custom properties (variables) for colors, backgrounds, text, accents, borders, and shadows, allowing for easy theme switching.
-    *   `transition: background-color 0.3s ease, color 0.3s ease;`: Smooth transitions for theme changes.
+## 🏗️ Architecture
 
----
+### Frontend (React)
+```
+src/
+├── components/          # Reusable UI components
+│   ├── PollCard/       # Poll display and voting interface
+│   ├── PostCard/       # Social feed posts
+│   └── TopBar/         # Navigation header
+├── pages/              # Route components
+│   ├── homepage/       # Social feed
+│   ├── view-polls/     # Active polls list
+│   ├── create-polls/   # Poll creation (admin)
+│   └── admin-polls/    # Poll resolution (admin)
+├── context/            # Global state management
+│   ├── UserContext/    # Authentication & user data
+│   └── ThemeContext/   # Theme preferences
+└── hooks/              # Custom React hooks
+```
 
-## 2. Context Management
+### Backend (Spring Boot)
+```
+src/main/java/
+├── controller/         # REST API endpoints
+│   ├── PollController
+│   ├── UserController
+│   └── BlogPostController
+├── models/            # Entity classes
+│   ├── Poll
+│   ├── Vote
+│   ├── User
+│   └── UserBet
+├── service/           # Business logic
+│   ├── PollService
+│   └── UserService
+├── repository/        # Data access layer
+└── security/          # JWT authentication
+```
 
-### `src/context/ThemeContext.jsx`
-Manages the application's theme state (light/dark).
-*   **Purpose**: Provides a global way to access and change the current theme across the application without prop-drilling.
-*   **Key Functions/Components**:
-    *   `ThemeContext = createContext()`: Creates a React Context object.
-    *   `ThemeProvider({ children })`: A functional component that provides the theme context.
-    *   `useState('dark')`: Manages the `theme` state, initialized to 'dark'.
-    *   `toggleTheme()`: A function to switch the theme between 'light' and 'dark'.
-    *   `useMemo(() => ({ theme, toggleTheme }), [theme])`: Memoizes the context value to prevent unnecessary re-renders of consuming components.
+## 🚀 Getting Started
 
----
+### Prerequisites
+- Node.js 18+ and npm
+- Java 17+
+- MySQL 8+
+- Git
 
-## 3. Custom Hooks
+### Installation
 
-### `src/hooks/useOutsideClick.js`
-A custom React hook to detect clicks outside a specified DOM element.
-*   **Purpose**: Useful for closing modals, dropdowns, or other UI elements when a user clicks anywhere outside them.
-*   **Key Functions/Components**:
-    *   `useRef()`: Creates a ref object to hold a reference to the DOM element.
-    *   `useEffect()`: Attaches and detaches a `mousedown` event listener to the `document`.
-    *   `handleClick(event)`: The event handler that checks if the click occurred outside the referenced element and calls the provided `callback` function.
+#### 1. Clone the repository
+```bash
+git clone https://github.com/yourusername/utcn-poll.git
+cd utcn-poll
+```
 
-### `src/hooks/useScrollDirection.js`
-A custom React hook to determine the user's scroll direction.
-*   **Purpose**: Allows components to react to scroll events, for example, by hiding or showing elements based on whether the user is scrolling up or down.
-*   **Key Functions/Components**:
-    *   `useState(null)`: Manages the `scrollDirection` state ('up' or 'down').
-    *   `useEffect()`: Attaches and detaches a `scroll` event listener to the `window`.
-    *   `updateScrollDirection()`: Compares the current scroll position (`window.pageYOffset`) with the `lastScrollY` to determine the direction. Includes a threshold to prevent minor scrolls from triggering state changes.
+#### 2. Setup Database
+```sql
+CREATE DATABASE utcn_poll;
+```
 
----
+Run the SQL migrations in `/database/schema.sql`
 
-## 4. Reusable Components
+#### 3. Configure Backend
+Edit `src/main/resources/application.properties`:
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/utcn_poll
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+jwt.secret=your_secret_key
+```
 
-### `src/components/Modal/Modal.jsx`
-A generic, reusable modal component.
-*   **Purpose**: Displays content in an overlay above the rest of the application, typically for alerts, forms, or detailed views.
-*   **Key Functions/Components**:
-    *   `ReactDOM.createPortal(..., document.body)`: Renders the modal content outside the parent component's DOM hierarchy, directly into the `body`, ensuring it's always on top.
-    *   `isOpen`, `onClose`, `title`, `children`: Props to control visibility, close behavior, modal title, and content.
-    *   `styles.modalOverlay`: Handles clicks on the overlay to close the modal.
-    *   `styles.modalContent`: Prevents clicks inside the modal from propagating to the overlay.
-    *   `FiX` (from `react-icons/fi`): Provides a close icon.
+#### 4. Start Backend
+```bash
+./mvnw spring-boot:run
+```
+Backend runs on `http://localhost:8080`
 
----
+#### 5. Setup Frontend
+```bash
+cd frontend
+npm install
+npm start
+```
+Frontend runs on `http://localhost:3000`
 
-## 5. Application Pages
+### Default Admin Account
+```
+Email: admin@student.utcluj.ro
+Password: admin123
+```
 
-### `src/pages/homepage/Homepage.jsx`
-The main landing page for authenticated users.
-*   **Purpose**: Orchestrates the display of various homepage sections like the top bar, search bar, post creation, and the main feed.
-*   **Key Functions/Components**:
-    *   `useScrollDirection()`: Utilizes the custom hook to dynamically hide/show the `SearchBar` based on scroll direction.
-    *   Integrates `TopBar`, `SearchBar`, `CreatePost`, and `Feed` components.
+## 📊 How It Works
 
-### `src/pages/homepage/CreatePost.jsx`
-A component allowing users to create new posts.
-*   **Purpose**: Provides an input field and a button for users to type and submit their thoughts.
-*   **Key Functions/Components**:
-    *   `useState('')`: Manages the `postText` state for the input field.
-    *   `handlePost()`: A function to handle post submission (currently logs to console).
-    *   `disabled={!postText.trim()}`: Disables the post button if the input is empty.
+### Poll Creation Flow
+1. **Admin creates poll** → Sets question, options, and duration
+2. **Users vote** → Select option(s) and bet tokens
+3. **Poll expires** → No more votes accepted
+4. **Admin resolves** → Selects winning option
+5. **Rewards distributed** → Winners receive proportional share of loser pool
 
-### `src/pages/homepage/PostCard.jsx`
-Displays an individual post with interactive features.
-*   **Purpose**: Renders a single post, including user information, content, and engagement options like reactions, comments, and sharing.
-*   **Key Functions/Components**:
-    *   `useState` and `useRef`: Manages various UI states (e.g., `isReactionsVisible`, `isShareIconsVisible`, `selectedReaction`, `isCommentSectionVisible`, `isLikesModalOpen`, `comments`, `counts`, `newComment`).
-    *   `handleReaction(reactionType)`: Toggles reactions (like, heart, haha, sad, angry) and updates like counts.
-    *   `handleShare(platform)`: Simulates sharing to different platforms and updates share counts.
-    *   `handleAddComment(e)`: Adds a new comment to the post's comment list.
-    *   `handleReactionMouseEnter`, `handleReactionMouseLeave`, `handleShareMouseEnter`, `handleShareMouseLeave`: Control the visibility of reaction and share pickers on hover, using timeouts for a smoother UX.
-    *   `ReactionDisplay()`: A helper component to show the currently selected reaction icon and text.
-    *   `Modal`: Used to display a list of users who liked the post when the like count is clicked.
-    *   Integrates icons from `react-icons/fi`, `react-icons/fa`, `react-icons/ai`.
+### Betting Mechanics
+```
+Winner's Reward = BetAmount + (BetAmount / WinnerPool) × LoserPool
 
-### `src/pages/login/Login.jsx`
-The user login page.
-*   **Purpose**: Provides a form for users to enter their email and password to log in.
-*   **Key Functions/Components**:
-    *   `useState` for `formData` (email, password) and `errors`.
-    *   `handleChange(e)`: Updates form data as the user types.
-    *   `validate()`: Performs client-side validation for email format and password presence.
-    *   `handleSubmit(e)`: Prevents default form submission, runs validation, and (currently) logs data and shows an alert for successful login.
-    *   Uses Material UI components (`Container`, `Typography`, `TextField`, `Button`, `Box`) for styling and structure.
+Example:
+- Alice bets 20 tokens on "Yes" (Winner pool: 100)
+- Bob bets 80 tokens on "Yes"
+- Charlie bets 50 tokens on "No" (Loser pool: 50)
 
-### `src/pages/register/Register.jsx`
-The user registration page.
-*   **Purpose**: Provides a form for new users to create an account.
-*   **Key Functions/Components**:
-    *   `useState` for `formData` (name, email, password, confirmPassword) and `errors`.
-    *   `handleChange(e)`: Updates form data.
-    *   `validate()`: Performs client-side validation for name presence, UTCN email domain, password length, and password matching.
-    *   `handleSubmit(e)`: Prevents default form submission, runs validation, and (currently) logs data and shows an alert for successful registration.
-    *   Uses Material UI components (`Container`, `Typography`, `TextField`, `Button`, `Box`).
+Alice receives: 20 + (20/100) × 50 = 30 tokens
+Bob receives: 80 + (80/100) × 50 = 120 tokens
+```
 
-### `src/pages/welcome/Welcome.jsx`
-The initial landing page for visitors.
-*   **Purpose**: Greets users, provides a brief description of the application, and directs them to login or register.
-*   **Key Functions/Components**:
-    *   `useContext(ThemeContext)`: Accesses the current theme to dynamically load the appropriate logo (`logoLight` or `logoDark`).
-    *   `Link` (from `react-router-dom`): Provides navigation to the login and registration pages.
-    *   `Welcome.css`: Specific styles for this page.
-    *   `animation: 'fadeIn 1s ease-in-out'`: Applies a fade-in animation to the logo.
+## 🔐 Security Features
 
----
-=======
-# UTCN_POLL
+- **JWT Authentication** - Secure token-based auth
+- **Password Hashing** - SHA-256 encryption
+- **Role-Based Access** - Admin/User/Member roles
+- **Protected Routes** - Frontend and backend validation
+- **CORS Configuration** - Controlled cross-origin access
 
-UTCN_POLL is a full-stack social and prediction platform designed for students of **UTCN**, allowing them to post blogs, ask questions, interact socially, and participate in gamified polls using virtual coins.
-
-## Inspiration
-The idea originated from our **Instagram page**, which already served as a place for students to ask questions and communicate. However, it relied entirely on one person being online to answer and mediate discussions.  
-We wanted to build a **scalable platform** where students could interact directly, collaborate, and engage without depending on a single intermediary.
-
----
-
-## Features
-
-### Social Feed
-- Students can create blog posts and discussion threads.
-- Users can like and comment on posts.
-- Modern and clean interface for reading and interacting with content.
-
-### Prediction Polls (Twitch-style)
-- Admins can create multi-option polls (e.g., “How many will fail exam X?”).
-- Students can bet **virtual coins** on poll outcomes.
-- Winners receive proportional shares of the total coin pool.
-- Adds competition and fun to the academic environment.
-
-### Achievements & Coins
-- Users earn coins by participating and engaging with the platform.
-- Achievements unlock as users reach milestones (posts, poll wins, etc.).
-
-### Role System
-- **Students:** Create posts, comment, like, and vote in polls.
-- **Admins:** Manage polls, moderate content, and oversee platform health.
-
----
-
-## Tech Stack
-
-### Backend
-- Java Spring Boot  
-- Layered architecture (Controller, Service, Repository)  
-- Role-based authentication and authorization  
+## 🛠️ Tech Stack
 
 ### Frontend
-- React with modern component structure (Hooks, Context where applicable)  
-- Responsive and intuitive UI  
+- **React 18** - UI library
+- **React Router** - Client-side routing
+- **Framer Motion** - Animations
+- **React DatePicker** - Date/time selection
+- **CSS Modules** - Scoped styling
+- **Context API** - State management
 
-### Database
-- MySQL  
-- JPA/Hibernate ORM  
-- Clear relational schema for users, posts, comments, polls, votes, achievements  
+### Backend
+- **Spring Boot 3** - Java framework
+- **Spring Security** - Authentication/Authorization
+- **Spring Data JPA** - Database ORM
+- **Hibernate** - Object-relational mapping
+- **MySQL** - Relational database
+- **JWT** - JSON Web Tokens
+
+## 📱 Screenshots
+
+### Poll Voting Interface
+![Poll Interface](screenshots/poll-voting.png)
+
+### Admin Resolution Panel
+![Admin Panel](screenshots/admin-resolve.png)
+
+### Social Feed
+![Social Feed](screenshots/homepage.png)
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Authors
+
+- **Your Name** - *Initial work* - [YourGitHub](https://github.com/yourusername)
+
+## 🙏 Acknowledgments
+
+- Built as a project for UTCN (Technical University of Cluj-Napoca)
+- Inspired by modern polling platforms and prediction markets
+- Thanks to the open-source community for excellent libraries and tools
+
+## 📞 Contact
+
+Project Link: [https://github.com/yourusername/utcn-poll](https://github.com/yourusername/utcn-poll)
 
 ---
 
-## Architecture Overview
-- React frontend communicates with a Spring Boot REST API.
-- API interacts with a MySQL database.
-- Clean separation of layers enabling maintainability, scalability, and clear responsibility boundaries.
-
----
-
-**License:** MIT (for inspiration purposes only)
->>>>>>> 1635a8dbea26bbbdedfc3284b02070557d6ca840
+⭐ **Star this repo if you found it helpful!**
