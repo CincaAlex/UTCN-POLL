@@ -1,6 +1,7 @@
 package controller;
 
 import models.Poll;
+import models.PollDTO;
 import models.ResultError;
 import models.User;
 import org.springframework.http.ResponseEntity;
@@ -9,9 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import repository.UserRepository;
 import service.PollService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/polls")
@@ -27,11 +27,26 @@ public class PollController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Poll>> getAllPolls() {
+    public ResponseEntity<List<PollDTO>> getAllPolls(Authentication auth) {
         System.out.println("🗳️ [BACKEND] Fetching all polls");
         List<Poll> polls = pollService.getAllPolls();
+
+        Integer currentUserId = null;
+        if (auth != null) {
+            String email = auth.getName();
+            Optional<User> userOpt = userRepository.findByEmail(email);
+            if (userOpt.isPresent()) {
+                currentUserId = userOpt.get().getId();
+            }
+        }
+
+        final Integer userId = currentUserId;
+        List<PollDTO> pollDTOs = polls.stream()
+                .map(poll -> new PollDTO(poll, userId))
+                .collect(Collectors.toList());
+
         System.out.println("🗳️ [BACKEND] Found " + polls.size() + " polls");
-        return ResponseEntity.ok(polls);
+        return ResponseEntity.ok(pollDTOs);
     }
 
     @GetMapping("/active")

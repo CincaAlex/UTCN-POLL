@@ -102,9 +102,23 @@ public class Poll {
         return this.creator != null ? this.creator.getName() : "Unknown";
     }
 
+    @JsonProperty("userVotedOptionIds")
+    public List<Integer> getUserVotedOptionIds(Integer userId) {
+        if (userId == null || options == null) {
+            return new ArrayList<>();
+        }
+
+        List<Integer> votedOptionIds = new ArrayList<>();
+        for (Vote option : options) {
+            if (option.getListUsers() != null && option.getListUsers().contains(userId)) {
+                votedOptionIds.add(option.getId());
+            }
+        }
+        return votedOptionIds;
+    }
+
     @JsonProperty("creatorAvatar")
     public String getCreatorAvatar() {
-        // DacÄƒ ai avatar Ã®n User, foloseÈ™te-l, altfel null
         return null; // sau this.creator != null ? this.creator.getAvatar() : null;
     }
 
