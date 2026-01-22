@@ -39,6 +39,9 @@ public class Poll {
     @JsonIgnore
     private Admin creator;
 
+    @Column(name = "winning_option_id")
+    private Integer winningOptionId;
+
     @Column(name = "resolved")
     private boolean resolved = false;
 
@@ -60,6 +63,19 @@ public class Poll {
             }
         }
         this.creator = admin;
+    }
+
+    public Integer getWinningOptionId() {
+        return winningOptionId;
+    }
+
+    public void setWinningOptionId(Integer winningOptionId) {
+        this.winningOptionId = winningOptionId;
+    }
+
+    @JsonProperty("winningOptionId")
+    public Integer getWinningOption() {
+        return this.winningOptionId;
     }
 
     public boolean isResolved() {

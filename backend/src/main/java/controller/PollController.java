@@ -64,7 +64,7 @@ public class PollController {
 
                 // ✅ Adaugă userVotedOptionIds
                 pollData.put("userVotedOptionIds", poll.getUserVotedOptionIds(currentUserId));
-
+                pollData.put("winningOptionId", poll.getWinningOption());
                 pollsWithVoteInfo.add(pollData);
             }
 
@@ -150,7 +150,11 @@ public class PollController {
                 return ResponseEntity.status(403).body(new ResultError(false, "Only admins can create polls"));
             }
 
+            System.out.println("📅 [CREATE] Received endDate: " + poll.getEndDate());
+
             ResultError result = pollService.createPoll(poll, creator);
+
+            System.out.println("📅 [CREATE] Final endDate in DB: " + poll.getEndDate());
 
             if (result.isSuccess()) {
                 return ResponseEntity.ok(poll);

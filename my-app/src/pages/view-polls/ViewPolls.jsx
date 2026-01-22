@@ -55,6 +55,7 @@ const ViewPolls = () => {
                             name: poll.creatorName || `User #${poll.creatorId}`,
                             avatar: poll.creatorAvatar || 'https://i.pravatar.cc/150'
                         },
+                        winningOptionId: poll.winningOptionId, // ✅ Adaugă asta
                         status: poll.expired ? 'Ended' : 'Active',
                         isAnonymous: poll.isAnonymous || false,
                         allowMultiple: poll.allowMultiple || false,

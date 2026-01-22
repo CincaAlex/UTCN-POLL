@@ -163,6 +163,18 @@ const CreatePolls = () => {
         handleCloseModal();
     };
 
+    const formatDateForBackend = (date) => {
+        // Convertește data locală în formatul așteptat de backend fără a schimba fusul orar
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
     // ✅ Submit poll to backend
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -178,7 +190,7 @@ const CreatePolls = () => {
         const newPoll = {
             title: question,
             description: '', // Optional description field
-            endDate: endDate.toISOString(),
+            endDate: formatDateForBackend(endDate),
             options: options
                 .filter(opt => opt.trim() !== '')
                 .map((optText, idx) => ({

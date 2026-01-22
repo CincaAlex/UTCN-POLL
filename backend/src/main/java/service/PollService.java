@@ -226,6 +226,7 @@ public class PollService {
         }
 
         // ✅ Marchează poll-ul ca rezolvat
+        poll.setWinningOptionId(winningOptionId);
         poll.setResolved(true);
         pollRepository.save(poll);
         System.out.println("🏆 [RESOLVE] Poll marked as resolved in DB");

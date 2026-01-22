@@ -132,10 +132,10 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
 
     const isOwner = user && poll.author && poll.author.name === user.name;
 
-    const winnerId =
-        poll.totalVotes === 0
-            ? null
-            : poll.options.reduce((a, b) => (a.votes > b.votes ? a : b)).id;
+    const winnerId = poll.winningOptionId || 
+    (poll.totalVotes === 0
+        ? null
+        : poll.options.reduce((a, b) => (a.votes > b.votes ? a : b)).id);
 
     const userWon =
         isEnded &&
