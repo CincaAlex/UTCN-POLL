@@ -1,0 +1,50 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.3.4">
+  <diagram name="Page-1" id="ZU8SHC7evV9Z6LLa8OTe">
+    <mxGraphModel dx="1042" dy="570" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ixpM3aXYSIOZbLMc0Zbg-1" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Actor" vertex="1">
+          <mxGeometry height="60" width="30" x="410" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="ixpM3aXYSIOZbLMc0Zbg-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="60" width="120" x="500" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="ixpM3aXYSIOZbLMc0Zbg-3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=13;" value="create/edit posts" vertex="1">
+          <mxGeometry height="30" width="60" x="530" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="ixpM3aXYSIOZbLMc0Zbg-4" edge="1" parent="1" source="ixpM3aXYSIOZbLMc0Zbg-1" style="endArrow=classic;html=1;rounded=0;entryX=0.23;entryY=0.943;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="ixpM3aXYSIOZbLMc0Zbg-2" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="400" y="320" as="sourcePoint" />
+            <mxPoint x="450" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ixpM3aXYSIOZbLMc0Zbg-5" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="70" width="120" x="530" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="ixpM3aXYSIOZbLMc0Zbg-6" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=13;" value="delete any posts/comments" vertex="1">
+          <mxGeometry height="40" width="70" x="555" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="ixpM3aXYSIOZbLMc0Zbg-7" edge="1" parent="1" source="ixpM3aXYSIOZbLMc0Zbg-1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="ixpM3aXYSIOZbLMc0Zbg-5" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="400" y="320" as="sourcePoint" />
+            <mxPoint x="450" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ixpM3aXYSIOZbLMc0Zbg-8" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="70" width="120" x="250" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="ixpM3aXYSIOZbLMc0Zbg-9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="create/edit/delete polls" vertex="1">
+          <mxGeometry height="30" width="60" x="280" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="ixpM3aXYSIOZbLMc0Zbg-10" edge="1" parent="1" source="ixpM3aXYSIOZbLMc0Zbg-1" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points" />
+            <mxPoint x="400" y="320" as="sourcePoint" />
+            <mxPoint x="330" y="242" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
