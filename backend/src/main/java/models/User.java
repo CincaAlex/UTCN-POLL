@@ -1,5 +1,6 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -17,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("USER")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
 
@@ -47,18 +49,16 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // JSON columns for inheritance
-    @Convert(converter = IntegerListConverter.class)
-    @Column(name = "created_polls", columnDefinition = "JSON")
-    private List<Integer> createdPolls;
+    // ✅ Simplified: Remove JSON columns that cause serialization issues
+    // These will be managed through service layer if needed
+    @Transient
+    private List<Integer> createdPolls = new ArrayList<>();
 
-    @Convert(converter = IntegerListConverter.class)
-    @Column(name = "achievement_list", columnDefinition = "JSON")
-    private List<Integer> achievementList;
+    @Transient
+    private List<Integer> achievementList = new ArrayList<>();
 
-    @Convert(converter = IntegerListConverter.class)
-    @Column(name = "vote_list", columnDefinition = "JSON")
-    private List<Integer> voteList;
+    @Transient
+    private List<Integer> voteList = new ArrayList<>();
 
     // Constructors
     public User() {
@@ -163,7 +163,8 @@ public class User {
         return hashPassword(plainPassword).equals(this.password);
     }
 
-    // Get user type for discriminator
+    // ✅ IMPORTANT: Expune userType în JSON pentru frontend
+    @JsonProperty("userType")
     public String getUserType() {
         if (this instanceof Admin) return "ADMIN";
         if (this instanceof Member) return "MEMBER";

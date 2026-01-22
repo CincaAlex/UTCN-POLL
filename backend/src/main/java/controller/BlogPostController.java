@@ -138,8 +138,44 @@ public class BlogPostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResultError> deletePost(@PathVariable int id) {
-        return ResponseEntity.ok(blogPostService.deletePost(id));
+    public ResponseEntity<?> deletePost(@PathVariable int id, java.security.Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(new ResultError(false, "Unauthorized"));
+        }
+
+        try {
+            // Get the post
+            Optional<BlogPost> postOpt = blogPostService.getPostById(id);
+            if (postOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(new ResultError(false, "Post not found"));
+            }
+
+            BlogPost post = postOpt.get();
+
+            // Get current user
+            String email = principal.getName();
+            Optional<User> userOpt = userRepository.findByEmail(email);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(401).body(new ResultError(false, "User not found"));
+            }
+
+            User currentUser = userOpt.get();
+
+            // ✅ Check permissions: must be post owner OR admin
+            boolean isOwner = post.getAuthor() != null && post.getAuthor().getId() == currentUser.getId();
+            boolean isAdmin = "ADMIN".equals(currentUser.getUserType());
+
+            if (!isOwner && !isAdmin) {
+                return ResponseEntity.status(403).body(new ResultError(false, "Forbidden: You don't have permission to delete this post"));
+            }
+
+            // Delete the post
+            ResultError result = blogPostService.deletePost(id);
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ResultError(false, "Error deleting post: " + e.getMessage()));
+        }
     }
 
     public record CreatePostRequest(String title, String content) {}

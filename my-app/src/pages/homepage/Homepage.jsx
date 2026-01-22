@@ -40,6 +40,7 @@ const Homepage = () => {
           
           if (data && data.length > 0) {
             console.log('📥 [HOMEPAGE] First post:', data[0]);
+            console.log('📥 [HOMEPAGE] First post author:', data[0]?.author);
             console.log('📥 [HOMEPAGE] First post likedBy:', data[0]?.likedBy);
             console.log('📥 [HOMEPAGE] First post comments:', data[0]?.comments);
           }
@@ -55,7 +56,9 @@ const Homepage = () => {
           console.log('📥 [HOMEPAGE] Posts set in state');
           setPosts(sortedData);
         } else {
+          const errorText = await response.text();
           console.error('📥 [HOMEPAGE] Failed to fetch posts', response.status);
+          console.error('📥 [HOMEPAGE] Error response:', errorText);
           setPosts([]);
         }
       } catch (error) {
