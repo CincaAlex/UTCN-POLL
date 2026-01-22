@@ -39,7 +39,9 @@ const Homepage = () => {
           console.log('📥 [HOMEPAGE] Fetched posts count:', data?.length);
           
           if (data && data.length > 0) {
+            console.log('📥 [HOMEPAGE] First post:', data[0]);
             console.log('📥 [HOMEPAGE] First post likedBy:', data[0]?.likedBy);
+            console.log('📥 [HOMEPAGE] First post comments:', data[0]?.comments);
           }
 
           // normalize: dacă backend returnează content, dar unele posturi vechi au body,
@@ -221,13 +223,20 @@ const Homepage = () => {
   };
 
   const handleDeleteComment = async (postId, commentId) => {
+    console.log('🗑️ [HOMEPAGE] Deleting comment...');
+    console.log('🗑️ [HOMEPAGE] Post ID:', postId);
+    console.log('🗑️ [HOMEPAGE] Comment ID:', commentId);
+    console.log('🗑️ [HOMEPAGE] Token exists:', !!token);
+    
     if (!token) {
-      console.error('No authentication token found for deleting comment.');
+      console.error('🗑️ [HOMEPAGE] No authentication token found for deleting comment.');
       return;
     }
 
     if (window.confirm('Are you sure you want to delete this comment?')) {
       try {
+        console.log('🗑️ [HOMEPAGE] Sending DELETE request to /api/comments/' + commentId);
+        
         const response = await fetch(`/api/comments/${commentId}`, {
           method: 'DELETE',
           headers: {
@@ -235,21 +244,29 @@ const Homepage = () => {
           },
         });
 
+        console.log('🗑️ [HOMEPAGE] Response status:', response.status);
+
         if (response.ok) {
+          const result = await response.json();
+          console.log('🗑️ [HOMEPAGE] Delete response from backend:', result);
+          console.log('🗑️ [HOMEPAGE] Comment deleted successfully, updating local state');
+          
           setPosts(prev =>
             prev.map(post => {
               if (post.id === postId) {
                 const updatedComments = (post.comments || []).filter(c => c.id !== commentId);
+                console.log('🗑️ [HOMEPAGE] Updated comments for post', postId, ':', updatedComments);
                 return { ...post, comments: updatedComments };
               }
               return post;
             })
           );
         } else {
-          console.error('Failed to delete comment:', response.status, response.statusText);
+          const errorText = await response.text();
+          console.error('🗑️ [HOMEPAGE] Failed to delete comment:', response.status, errorText);
         }
       } catch (error) {
-        console.error('Error deleting comment:', error);
+        console.error('🗑️ [HOMEPAGE] Error deleting comment:', error);
       }
     }
   };

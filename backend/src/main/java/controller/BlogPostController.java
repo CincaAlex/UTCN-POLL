@@ -64,9 +64,48 @@ public class BlogPostController {
         return ResponseEntity.ok(blogPostService.editPost(id, content));
     }
 
+    // ✅ FIX: Primește doar textul comentariului, author vine din JWT
     @PostMapping("/{id}/comments")
-    public ResponseEntity<ResultError> addComment(@PathVariable int id, @RequestBody Comments comment) {
-        return ResponseEntity.ok(blogPostService.addComment(id, comment));
+    public ResponseEntity<?> addComment(
+            @PathVariable int id,
+            @RequestBody AddCommentRequest req,
+            java.security.Principal principal) {
+
+        if (principal == null) {
+            return ResponseEntity.status(401).body(new ResultError(false, "Unauthorized"));
+        }
+
+        try {
+            // Găsește autorul din JWT
+            String email = principal.getName();
+            Optional<User> authorOpt = userRepository.findByEmail(email);
+
+            if (authorOpt.isEmpty()) {
+                return ResponseEntity.status(401).body(new ResultError(false, "User not found"));
+            }
+
+            // Găsește post-ul
+            Optional<BlogPost> postOpt = blogPostService.getPostById(id);
+            if (postOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(new ResultError(false, "Post not found"));
+            }
+
+            // Creează comentariul
+            Comments comment = new Comments(authorOpt.get(), req.comment());
+
+            // Adaugă comentariul
+            ResultError result = blogPostService.addComment(id, comment);
+
+            if (!result.isSuccess()) {
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // ✅ Returnează comentariul salvat (cu id din DB)
+            return ResponseEntity.ok(comment);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ResultError(false, "Error adding comment: " + e.getMessage()));
+        }
     }
 
     // ✅ FIX: Returnează post-ul complet cu likedBy după toggle
@@ -104,4 +143,7 @@ public class BlogPostController {
     }
 
     public record CreatePostRequest(String title, String content) {}
+
+    // ✅ DTO pentru adăugare comentariu
+    public record AddCommentRequest(String comment) {}
 }

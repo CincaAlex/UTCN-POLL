@@ -35,7 +35,7 @@ public class BlogPost {
         if (content == null) content = "";
     }
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Comments> comments = new ArrayList<>();
 
     @ElementCollection

@@ -211,25 +211,37 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
     e.preventDefault();
     if (!user || !token || !id || newComment.trim() === '') return;
 
+    console.log('💬 [COMMENT] Adding comment...');
+    console.log('💬 [COMMENT] Post ID:', id);
+    console.log('💬 [COMMENT] Comment text:', newComment.trim());
+
     try {
+      const requestBody = {
+        comment: newComment.trim(),
+      };
+
+      console.log('💬 [COMMENT] Request body:', JSON.stringify(requestBody, null, 2));
+
       const response = await fetch(`/api/posts/${id}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          author: user,
-          comment: newComment.trim(),
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('💬 [COMMENT] Response status:', response.status);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('💬 [COMMENT] Error response:', errorText);
         console.error('Failed to add comment');
         return;
       }
 
       const addedComment = await response.json();
+      console.log('💬 [COMMENT] Added comment from backend:', addedComment);
 
       setLocalComments(prev => {
         const base = prev ?? (Array.isArray(post?.comments) ? post.comments : []);
