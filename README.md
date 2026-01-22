@@ -196,14 +196,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Built as a project for UTCN (Technical University of Cluj-Napoca)
-- Inspired by modern polling platforms and prediction markets
-- Thanks to the open-source community for excellent libraries and tools
-
-## 📞 Contact
-
-Project Link: [https://github.com/yourusername/utcn-poll](https://github.com/yourusername/utcn-poll)
-
----
-
-⭐ **Star this repo if you found it helpful!**
+- Built as a project for UTCN (Technical University of Cluj-Napoca
