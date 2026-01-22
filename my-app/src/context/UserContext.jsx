@@ -117,8 +117,10 @@ export const UserProvider = ({ children }) => {
     };
 
     const updateUser = (newData) => {
+        console.log('👤 [UserContext] Updating user with:', newData);
         setUser(prevUser => {
             const updatedUser = { ...prevUser, ...newData };
+            console.log('👤 [UserContext] New user state:', updatedUser);
             return updatedUser;
         });
     };

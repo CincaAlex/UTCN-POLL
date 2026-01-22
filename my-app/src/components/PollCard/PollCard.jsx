@@ -95,10 +95,12 @@ const PollOptionItem = ({
                         transition={{ duration: 1.2 }}
                     />
                     <div className={styles.resultContent}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            {isWinner && <IoMdTrophy className={styles.winnerIcon} />}
-                            <span className={styles.optionText}>{option.text}</span>
-                        </div>
+                        <span className={styles.voteStats}>
+                            <AnimatedCounter value={percentage} format={(v) => `${Math.round(v)}%`} />
+                            {' ('}
+                            <AnimatedCounter value={option.votes} />
+                            {' pts)'} {/* ✅ Adaugă "pts" pentru a arăta că sunt puncte */}
+                        </span>
                         <span className={styles.voteStats}>
                             <AnimatedCounter value={percentage} format={(v) => `${Math.round(v)}%`} />
                             {' ('}
@@ -175,7 +177,8 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
 
         const amount = Number(betAmount);
 
-        // Trimite votul la backend
+        // ✅ Nu mai facem update local - lăsăm backend-ul să gestioneze
+        // ViewPolls va face refresh automat după vot
         onVote(poll.id, selectedOptions[0], amount);
 
         // --- ADDPOLLBET INTEGRATION ---
@@ -189,7 +192,6 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
             console.error(err.message);
         }
 
-        // Reset local state
         setSelectedOptions([]);
         setBetAmount('');
     };

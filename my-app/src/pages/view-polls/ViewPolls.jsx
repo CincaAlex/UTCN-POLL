@@ -8,7 +8,7 @@ import { UserContext } from '../../context/UserContext';
 const ViewPolls = () => {
     const [polls, setPolls] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { user, token } = useContext(UserContext);
+    const { user, token, updateUser } = useContext(UserContext);
 
     // Calculează timpul rămas până la endDate
     const calculateTimeLeft = (endDate) => {
@@ -44,21 +44,21 @@ const ViewPolls = () => {
                     // Normalizează datele pentru PollCard
                     const normalizedPolls = data.map(poll => ({
                         id: poll.id,
-                        question: poll.title, // Backend trimite "title"
+                        question: poll.title,
                         options: poll.options?.map(opt => ({
                             id: opt.id,
-                            text: opt.optionText, // Backend trimite "optionText"
-                            votes: opt.totalVotes || 0
+                            text: opt.optionText,
+                            votes: opt.totalBets || 0  // ✅ Folosește totalBets în loc de totalVotes
                         })) || [],
-                        totalVotes: poll.options?.reduce((sum, opt) => sum + (opt.totalVotes || 0), 0) || 0,
+                        totalVotes: poll.options?.reduce((sum, opt) => sum + (opt.totalBets || 0), 0) || 0, // ✅ Suma totalBets
                         author: {
-                            name: poll.creatorName || 'Unknown', // Trebuie să adaugi creatorName în backend
+                            name: poll.creatorName || `User #${poll.creatorId}`,
                             avatar: poll.creatorAvatar || 'https://i.pravatar.cc/150'
                         },
                         status: poll.expired ? 'Ended' : 'Active',
                         isAnonymous: poll.isAnonymous || false,
                         allowMultiple: poll.allowMultiple || false,
-                        pollDuration: poll.pollDuration || calculateTimeLeft(poll.endDate),
+                        pollDuration: calculateTimeLeft(poll.endDate),
                         userVotedOptionIds: poll.userVotedOptionIds || [],
                         betAmount: poll.betAmount || 0
                     }));
@@ -96,7 +96,6 @@ const ViewPolls = () => {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    userId: user.id,
                     optionId,
                     betAmount,
                 }),
@@ -106,13 +105,51 @@ const ViewPolls = () => {
                 const result = await response.json();
                 console.log('🗳️ [POLLS] Vote successful:', result);
                 
-                // Refresh polls to get updated vote counts
+                // ✅ Refresh polls to get updated data
                 const pollsResponse = await fetch('/api/polls', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
+                
                 if (pollsResponse.ok) {
-                    const updatedPolls = await pollsResponse.json();
-                    setPolls(updatedPolls);
+                    const data = await pollsResponse.json();
+                    console.log('🗳️ [POLLS] Refreshed data:', data);
+                    
+                    // ✅ Normalizează din nou datele
+                    const normalizedPolls = data.map(poll => ({
+                        id: poll.id,
+                        question: poll.title,
+                        options: poll.options?.map(opt => ({
+                            id: opt.id,
+                            text: opt.optionText,
+                            votes: opt.totalBets || 0
+                        })) || [],
+                        totalVotes: poll.options?.reduce((sum, opt) => sum + (opt.totalBets || 0), 0) || 0,
+                        author: {
+                            name: poll.creatorName || `User #${poll.creatorId}`,
+                            avatar: poll.creatorAvatar || 'https://i.pravatar.cc/150'
+                        },
+                        status: poll.expired ? 'Ended' : 'Active',
+                        isAnonymous: poll.isAnonymous || false,
+                        allowMultiple: poll.allowMultiple || false,
+                        pollDuration: calculateTimeLeft(poll.endDate),
+                        userVotedOptionIds: poll.userVotedOptionIds || [optionId], // ✅ Marchează că userul a votat
+                        betAmount: poll.betAmount || 0
+                    }));
+                    
+                    console.log('🗳️ [POLLS] Normalized after vote:', normalizedPolls);
+                    setPolls(normalizedPolls);
+                    
+                    // ✅ IMPORTANT: Actualizează și punctele userului în UserContext
+                    const userResponse = await fetch(`/api/users/email/${encodeURIComponent(user.email)}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    
+                    if (userResponse.ok) {
+                        const updatedUser = await userResponse.json();
+                        console.log('👤 [POLLS] Updated user tokens:', updatedUser.tokens);
+                        // Actualizează userul în context
+                        updateUser(updatedUser);
+                    }
                 }
             } else {
                 const error = await response.json();
