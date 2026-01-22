@@ -7,13 +7,10 @@ import ro from 'date-fns/locale/ro';
 import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from '../../context/UserContext';
 import PollCard from '../../components/PollCard/PollCard';
-import { INITIAL_POLLS } from '../../data/polls.js';
 import { AnimatePresence, motion } from 'framer-motion';
 
-// Register Romanian locale
 registerLocale('ro', ro);
 
-// Simple reusable modal component for the edit form (Unchanged)
 const EditPollModal = ({ isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
@@ -40,11 +37,9 @@ const EditPollModal = ({ isOpen, onClose, children }) => {
     );
 };
 
-
 const CreatePolls = () => {
-    const { user } = useContext(UserContext);
+    const { user, token } = useContext(UserContext);
     
-    // --- STATE FOR FORM DATA (SHARED: Used for both Creation and Editing) ---
     const [question, setQuestion] = useState('');
     const [options, setOptions] = useState(['', '']); 
     const [allowMultiple, setAllowMultiple] = useState(false);
@@ -52,23 +47,52 @@ const CreatePolls = () => {
     const [pollDuration, setPollDuration] = useState('1'); 
     const [customEndDate, setCustomEndDate] = useState(null); 
     
-    // --- STATE FOR EDITING & FEED ---
     const [myPolls, setMyPolls] = useState([]);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingPollId, setEditingPollId] = useState(null); 
+    const [loading, setLoading] = useState(true);
     
     const isEditing = editingPollId !== null;
-
-    // State used to force the creation form to re-render and clear itself
     const [creationFormKey, setCreationFormKey] = useState(0); 
 
+    // ✅ Fetch user's polls from backend
     useEffect(() => {
-        if (user) {
-            const userName = user.name || user.username;
-            const userExistingPolls = INITIAL_POLLS.filter(p => p.author && p.author.name === userName);
-            setMyPolls(userExistingPolls);
-        }
-    }, [user]);
+        const fetchMyPolls = async () => {
+            if (!token || !user) {
+                setLoading(false);
+                return;
+            }
+
+            console.log('🗳️ [CREATE POLL] Fetching user polls...');
+            setLoading(true);
+            
+            try {
+                const response = await fetch('/api/polls', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const allPolls = await response.json();
+                    // Filter to show only current user's polls
+                    const userPolls = allPolls.filter(p => 
+                        p.creator?.id === user.id || p.creatorId === user.id
+                    );
+                    console.log('🗳️ [CREATE POLL] User polls:', userPolls);
+                    setMyPolls(userPolls);
+                } else {
+                    console.error('🗳️ [CREATE POLL] Failed to fetch polls');
+                    setMyPolls([]);
+                }
+            } catch (error) {
+                console.error('🗳️ [CREATE POLL] Error fetching polls:', error);
+                setMyPolls([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMyPolls();
+    }, [token, user]);
 
     useEffect(() => {
         if (customEndDate && customEndDate < new Date()) {
@@ -76,8 +100,6 @@ const CreatePolls = () => {
         }
     }, [customEndDate]);
     
-    // --- UTILITIES ---
-
     const getFinalDurationText = (duration, endDate) => {
         if (duration === 'custom' && endDate) {
             return `Ends at ${endDate.toLocaleString('ro-RO')}`;
@@ -87,6 +109,12 @@ const CreatePolls = () => {
             '1': '1 Day', '3': '3 Days', '7': '1 Week'
         };
         return durationMap[duration] || '1 Day';
+    };
+
+    const calculateEndDate = (durationDays) => {
+        const now = new Date();
+        const hours = parseFloat(durationDays) * 24;
+        return new Date(now.getTime() + hours * 60 * 60 * 1000);
     };
 
     const handleOptionChange = (index, value) => {
@@ -107,10 +135,7 @@ const CreatePolls = () => {
             setOptions(newOptions);
         }
     };
-    
-    // --- CORE HANDLERS ---
 
-    // NOTE: handleResetForm is now only used for clearing the state for a new creation cycle
     const handleResetForm = () => {
         setQuestion('');
         setOptions(['', '']);
@@ -119,75 +144,78 @@ const CreatePolls = () => {
         setPollDuration('1');
         setCustomEndDate(null);
         setEditingPollId(null);
-        // Reset the form key to force re-render/clearing of the creation form fields
         setCreationFormKey(prev => prev + 1); 
     };
 
     const handleCloseModal = () => {
         setIsEditModalOpen(false);
-        handleResetForm(); // Clears shared state AND forces creation form refresh
-    };
-    
-    const handleSaveEdit = (e) => {
-        e.preventDefault();
-        
-        if (!isEditing) return;
-        
-        const finalDuration = getFinalDurationText(pollDuration, customEndDate);
-
-        setMyPolls(currentPolls => 
-            currentPolls.map(p => {
-                if (p.id === editingPollId) {
-                    return {
-                        ...p,
-                        question,
-                        options: options.map((txt, idx) => ({ id: p.options[idx]?.id || `new_opt_${Date.now()}_${idx}`, text: txt, votes: p.options[idx]?.votes || 0 })),
-                        isAnonymous,
-                        allowMultiple,
-                        pollDuration: finalDuration,
-                        userVotedOptionIds: [], 
-                        totalVotes: p.totalVotes, 
-                    };
-                }
-                return p;
-            })
-        );
-
-        handleCloseModal();
-        console.log(`Poll ID ${editingPollId} Updated.`);
-    };
-
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        
-        if (isEditing) return;
-
-        const finalDuration = getFinalDurationText(pollDuration, customEndDate);
-
-        const newPoll = {
-            id: Date.now(),
-            author: { 
-                name: user?.name || user?.username || 'Me', 
-                avatar: user?.photoUrl 
-            },
-            question,
-            options: options.map((txt, idx) => ({ id: `new_opt_${idx}`, text: txt, votes: 0 })),
-            totalVotes: 0,
-            timeLeftPercentage: 100,
-            status: 'Active',
-            userVotedOptionIds: [],
-            isAnonymous,
-            allowMultiple,
-            pollDuration: finalDuration
-        };
-
-        setMyPolls([newPoll, ...myPolls]);
-        console.log('Poll Created:', newPoll);
         handleResetForm();
     };
+    
+    const handleSaveEdit = async (e) => {
+        e.preventDefault();
+        
+        if (!isEditing || !token) return;
+        
+        console.log('🗳️ [CREATE POLL] Saving poll edit...');
+        // TODO: Implement edit endpoint in backend
+        alert('Edit functionality coming soon!');
+        handleCloseModal();
+    };
 
-    // --- POLL CARD HANDLERS ---
+    // ✅ Submit poll to backend
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        if (isEditing || !token || !user) return;
+
+        console.log('🗳️ [CREATE POLL] Creating new poll...');
+
+        const endDate = pollDuration === 'custom' 
+            ? customEndDate 
+            : calculateEndDate(pollDuration);
+
+        const newPoll = {
+            title: question,
+            description: '', // Optional description field
+            endDate: endDate.toISOString(),
+            options: options
+                .filter(opt => opt.trim() !== '')
+                .map((optText, idx) => ({
+                    optionText: optText,
+                    totalVotes: 0
+                }))
+        };
+
+        console.log('🗳️ [CREATE POLL] Poll data:', newPoll);
+
+        try {
+            const response = await fetch('/api/polls', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(newPoll),
+            });
+
+            if (response.ok) {
+                const createdPoll = await response.json();
+                console.log('🗳️ [CREATE POLL] Poll created:', createdPoll);
+                
+                setMyPolls([createdPoll, ...myPolls]);
+                handleResetForm();
+                alert('Poll created successfully!');
+            } else {
+                const error = await response.json();
+                console.error('🗳️ [CREATE POLL] Failed to create poll:', error);
+                alert(error.message || 'Failed to create poll');
+            }
+        } catch (error) {
+            console.error('🗳️ [CREATE POLL] Error creating poll:', error);
+            alert('Error creating poll');
+        }
+    };
 
     const handlePollVote = (updatedPoll) => {
         setMyPolls(currentPolls => 
@@ -195,39 +223,48 @@ const CreatePolls = () => {
         );
     };
 
-    const handleDeletePoll = (pollId) => {
+    const handleDeletePoll = async (pollId) => {
+        if (!token) return;
+
         if (window.confirm("Delete this poll?")) {
-            setMyPolls(currentPolls => currentPolls.filter(p => p.id !== pollId));
+            console.log('🗳️ [CREATE POLL] Deleting poll:', pollId);
+
+            try {
+                const response = await fetch(`/api/polls/${pollId}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (response.ok) {
+                    console.log('🗳️ [CREATE POLL] Poll deleted');
+                    setMyPolls(currentPolls => currentPolls.filter(p => p.id !== pollId));
+                } else {
+                    const error = await response.json();
+                    console.error('🗳️ [CREATE POLL] Delete failed:', error);
+                    alert(error.message || 'Failed to delete poll');
+                }
+            } catch (error) {
+                console.error('🗳️ [CREATE POLL] Error deleting poll:', error);
+                alert('Error deleting poll');
+            }
         }
     };
 
-    // Handler to load poll data into the form for editing
     const handleEditPoll = (poll) => {
-        
-        // 1. Load the selected poll data into state (this affects both forms temporarily)
+        setQuestion(poll.title);
+        setOptions(poll.options?.map(opt => opt.optionText || opt.text) || ['', '']);
         setEditingPollId(poll.id);
-        setQuestion(poll.question);
-        setOptions(poll.options.map(o => o.text));
-        setAllowMultiple(poll.allowMultiple);
-        setIsAnonymous(poll.isAnonymous);
-        setPollDuration('1'); 
-        setCustomEndDate(null); 
-        
-        // 2. Open the modal
-        setIsEditModalOpen(true); 
+        setIsEditModalOpen(true);
     };
-    
-    // --- VALIDATION ---
+
     const isFormValid = question.trim() !== '' && 
-                        options.every(opt => opt.trim() !== '') &&
+                        options.filter(o => o.trim()).length >= 2 && 
                         (pollDuration !== 'custom' || customEndDate !== null);
 
-    const currentUserIdentifier = user ? { name: user.name || user.username } : null;
+    const currentUserIdentifier = user ? { name: user.name || user.username, id: user.id } : null;
     
-    // Render Prop: The content of the poll form (reused for creation and editing)
     const renderPollForm = (submitHandler, buttonText, isCancelButtonVisible) => (
         <form onSubmit={submitHandler}>
-            {/* Question Input */}
             <div className={styles.inputGroup}>
                 <label className={styles.label}>Question</label>
                 <input
@@ -240,7 +277,6 @@ const CreatePolls = () => {
                 />
             </div>
 
-            {/* Options List */}
             <div className={styles.inputGroup}>
                 <label className={styles.label}>Options</label>
                 <div className={styles.optionsList}>
@@ -280,7 +316,6 @@ const CreatePolls = () => {
                 </button>
             </div>
 
-            {/* Settings */}
             <div className={styles.settingsSection}>
                 <div className={styles.settingItem}>
                     <div className={styles.settingLabel}><IoMdSettings /> <span>Allow Multiple Answers</span></div>
@@ -337,7 +372,6 @@ const CreatePolls = () => {
                 </div>
             </div>
 
-            {/* Submit/Save Button */}
             <div className={styles.footer}>
                 <button 
                     type="submit" 
@@ -346,7 +380,6 @@ const CreatePolls = () => {
                 >
                     {buttonText}
                 </button>
-                {/* Only show Cancel button if requested (i.e., in the modal) */}
                 {isCancelButtonVisible && (
                     <button
                         type="button"
@@ -365,8 +398,6 @@ const CreatePolls = () => {
             <TopBar />
             <div className={styles.pageWrapper}>
                 <div className={styles.container}>
-                    {/* Poll Creation Form (Uses the key trick to remain clean) */}
-                    {/* The key forces React to reset the state of this component instance when the key changes. */}
                     <div 
                         key={isEditing ? 'editing' : creationFormKey} 
                         className={styles.createPollCard} 
@@ -376,11 +407,9 @@ const CreatePolls = () => {
                             <IoMdStats style={{ color: 'var(--accent)' }} /> 
                             Create a Poll
                         </h2>
-                        {/* Creation form does NOT show the Cancel button */}
                         {renderPollForm(handleSubmit, 'Create Poll', false)}
                     </div>
 
-                    {/* Edit Modal (Renders the same form content) */}
                     <AnimatePresence>
                         {isEditModalOpen && (
                             <EditPollModal isOpen={isEditModalOpen} onClose={handleCloseModal}>
@@ -388,14 +417,14 @@ const CreatePolls = () => {
                                     <IoMdStats style={{ color: 'var(--accent)' }} /> 
                                     Edit Poll
                                 </h2>
-                                {/* Edit form SHOWS the Cancel button */}
                                 {renderPollForm(handleSaveEdit, 'Save Changes', true)} 
                             </EditPollModal>
                         )}
                     </AnimatePresence>
 
-                    {/* My Polls Feed */}
-                    {myPolls.length > 0 && (
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>Loading your polls...</div>
+                    ) : myPolls.length > 0 ? (
                         <>
                             <h3 className={styles.title} style={{marginTop: '2rem'}}>My Active Polls</h3>
                             <AnimatePresence>
@@ -411,6 +440,10 @@ const CreatePolls = () => {
                                 ))}
                             </AnimatePresence>
                         </>
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                            No polls created yet. Create your first poll above!
+                        </div>
                     )}
                 </div>
             </div>

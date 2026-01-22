@@ -1,5 +1,7 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,11 +29,14 @@ public class Poll {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
-    @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    // ✅ EAGER fetch pentru a încărca opțiunile automat
+    @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Vote> options = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // ✅ EAGER fetch + JsonIgnore pentru a evita circular reference
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "creator_id", nullable = false)
+    @JsonIgnore
     private Admin creator;
 
     // Constructors
@@ -46,7 +51,6 @@ public class Poll {
         this.date = date;
         this.endDate = endDate;
         this.options = options;
-        // Ensure bidirectional relationship
         if (options != null) {
             for (Vote vote : options) {
                 vote.setPoll(this);
@@ -68,7 +72,7 @@ public class Poll {
                 .sum();
 
         if (totalVotes == 0) {
-            return results; // No one has voted
+            return results;
         }
 
         for (Vote option : options) {
@@ -87,8 +91,25 @@ public class Poll {
         this.creator = (Admin) creator;
     }
 
+    // ✅ Expune creatorId în JSON fără să expună întregul obiect Admin
+    @JsonProperty("creatorId")
     public int getCreatorId(){
-        return this.creator.getId();
+        return this.creator != null ? this.creator.getId() : 0;
+    }
+
+    @JsonProperty("creatorName")
+    public String getCreatorName() {
+        return this.creator != null ? this.creator.getName() : "Unknown";
+    }
+
+    @JsonProperty("creatorAvatar")
+    public String getCreatorAvatar() {
+        // DacÄƒ ai avatar Ã®n User, foloseÈ™te-l, altfel null
+        return null; // sau this.creator != null ? this.creator.getAvatar() : null;
+    }
+
+    public Admin getCreator() {
+        return creator;
     }
 
     public int getId() {
@@ -137,7 +158,6 @@ public class Poll {
 
     public void setOptions(List<Vote> options) {
         this.options = options;
-        // Ensure bidirectional relationship is maintained
         if (options != null) {
             for (Vote vote : options) {
                 vote.setPoll(this);
@@ -145,7 +165,6 @@ public class Poll {
         }
     }
 
-    // Helper methods for the PollService
     public Vote getVoteOptionById(int optionId) {
         if (options == null) return null;
         return options.stream()
@@ -154,14 +173,12 @@ public class Poll {
                 .orElse(null);
     }
 
-    // Pre-persist hook to set default date if not set
     @PrePersist
     protected void onCreate() {
         if (date == null) {
             date = LocalDateTime.now();
         }
         if (endDate == null) {
-            // Default end date: 7 days from creation
             endDate = date.plusDays(7);
         }
     }

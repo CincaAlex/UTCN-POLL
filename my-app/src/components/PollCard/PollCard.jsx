@@ -122,7 +122,7 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
     const [betError, setBetError] = useState('');
 
     const hasVoted =
-        poll.userVotedOptionIds.length > 0 ||
+        (poll.userVotedOptionIds?.length > 0) ||
         poll.status === 'Ended';
 
     const isEnded = poll.status === 'Ended';
@@ -138,7 +138,7 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
     const userWon =
         isEnded &&
         winnerId &&
-        poll.userVotedOptionIds.includes(winnerId);
+        poll.userVotedOptionIds?.includes(winnerId); // Adaugă "?" aici
 
     /* -------- Bet Validation (FIXED) -------- */
 
@@ -171,41 +171,27 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
     /* -------- Vote (FIXED) -------- */
 
     const handleVoteClick = () => {
-        // Use betError in the check
         if (selectedOptions.length === 0 || showResults || betError) return;
 
         const amount = Number(betAmount);
 
-        const updatedOptions = poll.options.map(opt => {
-                if (selectedOptions.includes(opt.id)) {
-                    return { ...opt, votes: opt.votes + 1 };
-                }
-                return opt;
-            });
+        // Trimite votul la backend
+        onVote(poll.id, selectedOptions[0], amount);
 
-            const updatedPoll = {
-                ...poll,
-                options: updatedOptions,
-                totalVotes: poll.totalVotes + selectedOptions.length,
-                userVotedOptionIds: selectedOptions,
+        // --- ADDPOLLBET INTEGRATION ---
+        try {
+            addPollBet({
+                pollId: poll.id,
+                optionIds: selectedOptions,
                 betAmount: amount
-            };
+            });
+        } catch (err) {
+            console.error(err.message);
+        }
 
-            onVote(updatedPoll);
-
-            // --- ADDPOLLBET INTEGRATION ---
-            try {
-                addPollBet({
-                    pollId: poll.id,
-                    optionIds: selectedOptions,
-                    betAmount: amount
-                });
-            } catch (err) {
-                console.error(err.message);
-            }
-
-            setSelectedOptions([]);
-            setBetAmount('');
+        // Reset local state
+        setSelectedOptions([]);
+        setBetAmount('');
     };
 
     const displayedOptions = [...poll.options].sort((a, b) =>

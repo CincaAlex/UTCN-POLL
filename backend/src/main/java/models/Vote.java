@@ -1,5 +1,6 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +13,10 @@ public class Vote {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    // ✅ JsonIgnore pentru a evita circular reference Poll -> Vote -> Poll
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "poll_id", nullable = false)
+    @JsonIgnore
     private Poll poll;
 
     @Column(name = "option_text", nullable = false, length = 500)
@@ -22,7 +25,6 @@ public class Vote {
     @Column(name = "total_bets")
     private int totalBets = 0;
 
-    // ElementCollection for storing user IDs who voted for this option
     @ElementCollection
     @CollectionTable(name = "vote_users", joinColumns = @JoinColumn(name = "vote_id"))
     @Column(name = "user_id")
@@ -53,7 +55,7 @@ public class Vote {
     public void addVote(int userId) {
         if (!listUsers.contains(userId)) {
             listUsers.add(userId);
-            totalBets += 1; // Default bet of 1
+            totalBets += 1;
         }
     }
 

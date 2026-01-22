@@ -163,6 +163,11 @@ public class User {
         return hashPassword(plainPassword).equals(this.password);
     }
 
+    @JsonProperty("tokens")
+    public int getTokens() {
+        return this.points;
+    }
+
     // ✅ IMPORTANT: Expune userType în JSON pentru frontend
     @JsonProperty("userType")
     public String getUserType() {

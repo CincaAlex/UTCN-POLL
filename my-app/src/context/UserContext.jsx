@@ -26,6 +26,7 @@ export const UserProvider = ({ children }) => {
 
             const userData = await res.json();
             console.log('🔍 [UserContext] User data received:', userData);
+            console.log('🔍 [UserContext] User tokens:', userData.tokens);
             return userData;
         } catch (error) {
             console.error('🔍 [UserContext] Fetch error:', error);
