@@ -9,6 +9,7 @@ import Profile from './pages/profile/Profile';
 import CreatePolls from './pages/create-polls/CreatePolls';
 import ViewPolls from './pages/view-polls/ViewPolls';
 import ErrorPage from './pages/ErrorPage/ErrorPage';
+import AdminPolls from './pages/admin-polls/AdminPolls';
 
 function App() {
   const { theme } = useContext(ThemeContext);
@@ -27,6 +28,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/create-poll" element={<CreatePolls />} />
         <Route path="/view-polls" element={<ViewPolls />} />
+        <Route path="/admin/polls" element={<AdminPolls />} />
         <Route path="/access-denied" element={<ErrorPage />} />
       </Routes>
     </Router>

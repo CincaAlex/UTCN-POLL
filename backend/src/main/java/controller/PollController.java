@@ -27,26 +27,94 @@ public class PollController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PollDTO>> getAllPolls(Authentication auth) {
+    public ResponseEntity<?> getAllPolls(Authentication auth) {
         System.out.println("🗳️ [BACKEND] Fetching all polls");
-        List<Poll> polls = pollService.getAllPolls();
 
-        Integer currentUserId = null;
-        if (auth != null) {
-            String email = auth.getName();
-            Optional<User> userOpt = userRepository.findByEmail(email);
-            if (userOpt.isPresent()) {
-                currentUserId = userOpt.get().getId();
+        try {
+            List<Poll> polls = pollService.getAllPolls();
+
+            Integer currentUserId = null;
+
+            // Determină userId-ul curent dacă e autentificat
+            if (auth != null) {
+                String email = auth.getName();
+                Optional<User> userOpt = userRepository.findByEmail(email);
+                if (userOpt.isPresent()) {
+                    currentUserId = userOpt.get().getId();
+                    System.out.println("🗳️ [BACKEND] Current user ID: " + currentUserId);
+                }
             }
+
+            // Construiește răspunsul cu userVotedOptionIds
+            List<Map<String, Object>> pollsWithVoteInfo = new ArrayList<>();
+
+            for (Poll poll : polls) {
+                Map<String, Object> pollData = new HashMap<>();
+                pollData.put("id", poll.getId());
+                pollData.put("title", poll.getTitle());
+                pollData.put("description", poll.getDescription());
+                pollData.put("date", poll.getDate());
+                pollData.put("endDate", poll.getEndDate());
+                pollData.put("options", poll.getOptions());
+                pollData.put("expired", poll.isExpired());
+                pollData.put("creatorId", poll.getCreatorId());
+                pollData.put("creatorName", poll.getCreatorName());
+                pollData.put("creatorAvatar", poll.getCreatorAvatar());
+                pollData.put("resolved", poll.getResolvedStatus());
+
+                // ✅ Adaugă userVotedOptionIds
+                pollData.put("userVotedOptionIds", poll.getUserVotedOptionIds(currentUserId));
+
+                pollsWithVoteInfo.add(pollData);
+            }
+
+            System.out.println("🗳️ [BACKEND] Found " + polls.size() + " polls");
+            return ResponseEntity.ok(pollsWithVoteInfo);
+
+        } catch (Exception e) {
+            System.err.println("🗳️ [BACKEND] Error fetching polls: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(new ResultError(false, "Error fetching polls: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{pollId}/resolve")
+    public ResponseEntity<?> resolvePoll(
+            @PathVariable int pollId,
+            @RequestBody PollResultRequest request,
+            Authentication auth) {
+
+        if (auth == null) {
+            return ResponseEntity.status(401).body(new ResultError(false, "Unauthorized"));
         }
 
-        final Integer userId = currentUserId;
-        List<PollDTO> pollDTOs = polls.stream()
-                .map(poll -> new PollDTO(poll, userId))
-                .collect(Collectors.toList());
+        try {
+            String email = auth.getName();
+            Optional<User> userOpt = userRepository.findByEmail(email);
 
-        System.out.println("🗳️ [BACKEND] Found " + polls.size() + " polls");
-        return ResponseEntity.ok(pollDTOs);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(401).body(new ResultError(false, "User not found"));
+            }
+
+            User user = userOpt.get();
+
+            // Verifică dacă este admin
+            if (!"ADMIN".equals(user.getUserType())) {
+                return ResponseEntity.status(403).body(new ResultError(false, "Only admins can resolve polls"));
+            }
+
+            ResultError result = pollService.resolvePoll(pollId, request.winningOptionId());
+
+            if (result.isSuccess()) {
+                return ResponseEntity.ok(result);
+            }
+            return ResponseEntity.badRequest().body(result);
+
+        } catch (Exception e) {
+            System.err.println("Error resolving poll: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(new ResultError(false, "Error resolving poll: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/active")

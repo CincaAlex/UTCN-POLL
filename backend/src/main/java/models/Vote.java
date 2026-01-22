@@ -49,6 +49,7 @@ public class Vote {
         if (!listUsers.contains(userId)) {
             listUsers.add(userId);
             totalBets += betAmount;
+            // Nu mai salvăm bet amount-ul aici - se salvează în UserBet
         }
     }
 

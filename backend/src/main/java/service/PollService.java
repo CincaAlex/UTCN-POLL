@@ -1,11 +1,11 @@
 package service;
 
-import models.Poll;
-import models.User;
-import models.ResultError;
-import models.Vote;
+import models.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import repository.PollRepository;
+import repository.UserBetRepository;
+import repository.UserRepository;
 
 import javax.xml.transform.Result;
 import java.time.LocalDateTime;
@@ -17,6 +17,12 @@ import java.util.Optional;
 public class PollService {
 
     private final PollRepository pollRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserBetRepository userBetRepository;
 
     public PollService(PollRepository pollRepository){
         this.pollRepository = pollRepository;
@@ -71,8 +77,18 @@ public class PollService {
             return new ResultError(false, "Option not found");
         }
 
+        // ✅ Salvează în vote_users (prin Vote)
         selectedOption.addVote(user.getId(), betAmount);
+
+        // ✅ Salvează în user_bets (pentru resolve)
+        UserBet userBet = new UserBet(user.getId(), selectedOption.getId(), betAmount);
+        userBetRepository.save(userBet);
+        System.out.println("💾 [VOTE] Saved UserBet: userId=" + user.getId() +
+                ", voteId=" + selectedOption.getId() +
+                ", amount=" + betAmount);
+
         user.decreasePoints(betAmount);
+        userRepository.save(user); // ✅ Salvează userul cu punctele scăzute
 
         pollRepository.save(poll);
 
@@ -88,6 +104,133 @@ public class PollService {
         pollRepository.delete(poll);
 
         return new ResultError(true, "");
+    }
+
+    private int getUserBetAmount(int voteId, int userId) {
+        System.out.println("🏆 [RESOLVE] Getting bet amount for vote " + voteId + ", user " + userId);
+
+        List<UserBet> bets = userBetRepository.findByVoteId(voteId);
+        System.out.println("🏆 [RESOLVE] Found " + bets.size() + " bets for this vote");
+
+        int amount = bets.stream()
+                .filter(bet -> bet.getUserId() == userId)
+                .mapToInt(UserBet::getBetAmount)
+                .findFirst()
+                .orElse(0);
+
+        System.out.println("🏆 [RESOLVE] User " + userId + " bet amount: " + amount);
+        return amount;
+    }
+
+    public ResultError resolvePoll(int pollId, int winningOptionId) {
+        System.out.println("🏆 [RESOLVE] Starting resolution for poll " + pollId);
+
+        Optional<Poll> pollOpt = pollRepository.findById(pollId);
+        if (pollOpt.isEmpty()) {
+            System.err.println("🏆 [RESOLVE] Poll not found!");
+            return new ResultError(false, "Poll not found");
+        }
+
+        Poll poll = pollOpt.get();
+        System.out.println("🏆 [RESOLVE] Poll found: " + poll.getTitle());
+
+        // Verifică dacă poll-ul s-a încheiat
+        if (!poll.isExpired()) {
+            System.err.println("🏆 [RESOLVE] Poll is still active!");
+            return new ResultError(false, "Poll is still active");
+        }
+
+        // Găsește opțiunea câștigătoare
+        Vote winningOption = poll.getVoteOptionById(winningOptionId);
+        if (winningOption == null) {
+            System.err.println("🏆 [RESOLVE] Invalid winning option!");
+            return new ResultError(false, "Invalid winning option");
+        }
+
+        System.out.println("🏆 [RESOLVE] Winning option: " + winningOption.getOptionText());
+        System.out.println("🏆 [RESOLVE] Winners: " + winningOption.getListUsers());
+
+        // Calculează pool-urile
+        int winnerPool = winningOption.getTotalBets();
+        int loserPool = 0;
+
+        for (Vote option : poll.getOptions()) {
+            if (option.getId() != winningOptionId) {
+                loserPool += option.getTotalBets();
+            }
+        }
+
+        System.out.println("🏆 [RESOLVE] Winner pool: " + winnerPool + " tokens");
+        System.out.println("🏆 [RESOLVE] Loser pool: " + loserPool + " tokens");
+
+        // Dacă nu sunt perdanți, toți primesc înapoi pariul
+        if (loserPool == 0) {
+            System.out.println("🏆 [RESOLVE] No losers - returning bets");
+
+            for (Integer userId : winningOption.getListUsers()) {
+                System.out.println("🏆 [RESOLVE] Processing user " + userId);
+                Optional<User> userOpt = userRepository.findById(userId);
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+                    int userBet = getUserBetAmount(winningOption.getId(), userId);
+                    System.out.println("🏆 [RESOLVE] User " + userId + " bet: " + userBet);
+                    user.addPoints(userBet);
+                    userRepository.save(user);
+                    System.out.println("🏆 [RESOLVE] Returned " + userBet + " tokens to user " + userId);
+                } else {
+                    System.err.println("🏆 [RESOLVE] User " + userId + " not found!");
+                }
+            }
+
+            poll.setResolved(true);
+            pollRepository.save(poll);
+            System.out.println("🏆 [RESOLVE] Poll marked as resolved");
+
+            return new ResultError(true, "Poll resolved - no losers, bets returned");
+        }
+
+        // Distribuie câștigurile
+        if (winnerPool > 0) {
+            System.out.println("🏆 [RESOLVE] Distributing winnings...");
+
+            for (Integer userId : winningOption.getListUsers()) {
+                System.out.println("🏆 [RESOLVE] Processing winner user " + userId);
+                Optional<User> userOpt = userRepository.findById(userId);
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+
+                    // Găsește cât a pariat user-ul
+                    int userBet = getUserBetAmount(winningOption.getId(), userId);
+                    System.out.println("🏆 [RESOLVE] User " + userId + " bet: " + userBet);
+
+                    // Calculează procentul din winner pool
+                    double userPercentage = (double) userBet / winnerPool;
+
+                    // Calculează câștigul
+                    int winnings = (int) Math.round(userBet + (userPercentage * loserPool));
+
+                    System.out.println("🏆 [RESOLVE] User " + userId +
+                            " | Bet: " + userBet +
+                            " | Share: " + String.format("%.2f%%", userPercentage * 100) +
+                            " | Winnings: " + winnings);
+
+                    // Adaugă punctele
+                    user.addPoints(winnings);
+                    userRepository.save(user);
+
+                    System.out.println("🏆 [RESOLVE] User " + userId + " awarded " + winnings + " tokens");
+                } else {
+                    System.err.println("🏆 [RESOLVE] Winner user " + userId + " not found!");
+                }
+            }
+        }
+
+        // ✅ Marchează poll-ul ca rezolvat
+        poll.setResolved(true);
+        pollRepository.save(poll);
+        System.out.println("🏆 [RESOLVE] Poll marked as resolved in DB");
+
+        return new ResultError(true, "Poll resolved successfully. Winners rewarded!");
     }
 
     public ResultError updatePoll(int pollId, Poll updatedPoll, User user) {

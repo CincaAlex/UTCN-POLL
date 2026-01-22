@@ -69,6 +69,11 @@ const TopBar = () => {
                     ) : (
                         <button onClick={() => navigate('/view-polls')}>View polls</button>
                     )}
+                    {user?.userType === 'ADMIN' && (
+                    <button onClick={() => navigate('/admin/polls')}>
+                        🏆 Resolve Polls
+                    </button>
+                )}
                 </nav>
                 <div className={styles.topBarRight}>
                     <div 

@@ -39,6 +39,9 @@ public class Poll {
     @JsonIgnore
     private Admin creator;
 
+    @Column(name = "resolved")
+    private boolean resolved = false;
+
     // Constructors
     public Poll() {
         this.date = LocalDateTime.now();
@@ -57,6 +60,19 @@ public class Poll {
             }
         }
         this.creator = admin;
+    }
+
+    public boolean isResolved() {
+        return resolved;
+    }
+
+    public void setResolved(boolean resolved) {
+        this.resolved = resolved;
+    }
+
+    @JsonProperty("resolved")
+    public boolean getResolvedStatus() {
+        return this.resolved;
     }
 
     // Business methods
