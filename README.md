@@ -168,7 +168,7 @@ Bob receives: 80 + (80/100) × 50 = 120 tokens
 ## 📱 Screenshots
 
 ### LogIn Interface
-![LogIn Interface](doc/imgage.png)
+![LogIn Interface](doc/image.png)
 
 ### Poll Voting Interface
 ![Poll Interface](doc/image3.png)
