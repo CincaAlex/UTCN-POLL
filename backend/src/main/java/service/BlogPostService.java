@@ -6,6 +6,7 @@ import models.ResultError;
 import models.User;
 import org.springframework.stereotype.Service;
 import repository.BlogPostRepository;
+import repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,22 +15,47 @@ import java.util.Optional;
 public class BlogPostService {
 
     private final BlogPostRepository blogPostRepository;
+    private final UserRepository userRepository;
 
-    public BlogPostService(BlogPostRepository blogPostRepository) {
+    public BlogPostService(BlogPostRepository blogPostRepository, UserRepository userRepository) {
         this.blogPostRepository = blogPostRepository;
+        this.userRepository = userRepository;
     }
 
     public List<BlogPost> getAllPosts() {
-        return blogPostRepository.findAll();
+        List<BlogPost> posts = blogPostRepository.findAll();
+
+        return posts;
     }
 
     public Optional<BlogPost> getPostById(int id) {
-        return blogPostRepository.findById(id);
+        Optional<BlogPost> post = blogPostRepository.findById(id);
+
+
+        return post;
     }
 
     public ResultError createPost(BlogPost post) {
         blogPostRepository.save(post);
         return new ResultError(true, "Post created successfully");
+    }
+
+    public BlogPost savePost(BlogPost post) {
+        return blogPostRepository.save(post);
+    }
+
+    public ResultError toggleLikeByEmail(int postId, String email) {
+        Optional<BlogPost> postOpt = blogPostRepository.findById(postId);
+        if (postOpt.isEmpty()) return new ResultError(false, "Post not found");
+
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+        if (user == null) return new ResultError(false, "User not found");
+
+        BlogPost post = postOpt.get();
+        ResultError res = post.toggleLike(user);
+        blogPostRepository.save(post);
+        return res;
     }
 
     public ResultError editPost(int postId, String newContent) {
@@ -45,9 +71,11 @@ public class BlogPostService {
     public ResultError addComment(int postId, Comments comment) {
         Optional<BlogPost> postOpt = blogPostRepository.findById(postId);
         if (postOpt.isEmpty()) return new ResultError(false, "Post not found");
+
         BlogPost post = postOpt.get();
+
         ResultError res = post.addComment(comment);
-        blogPostRepository.save(post);
+
         return res;
     }
 

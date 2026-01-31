@@ -34,7 +34,7 @@ public class Achievement {
     private Integer actionCountRequired;
 
     @Column(name = "custom_image_url")
-    private String customImageUrl; // Optional: for completely custom images
+    private String customImageUrl;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -42,11 +42,7 @@ public class Achievement {
     @Column(name = "is_active")
     private boolean isActive = true;
 
-    @ManyToMany(mappedBy = "earnedAchievements")
-    private Set<User> usersEarned = new HashSet<>();
-
-    public Achievement() {
-        this.createdAt = LocalDateTime.now();
+    public Achievement(){
     }
 
     public Achievement(String name, String description, AchievementType type, BadgeTier tier) {
@@ -57,7 +53,6 @@ public class Achievement {
         this.tier = tier;
     }
 
-    // Enum for achievement types
     public enum AchievementType {
         POST_COUNT("post"),
         COMMENT_COUNT("comment"),
@@ -81,7 +76,6 @@ public class Achievement {
         }
     }
 
-    // Enum for badge tiers with color codes and image suffixes
     public enum BadgeTier {
         BRONZE("bronze", "#CD7F32", 1),
         SILVER("silver", "#C0C0C0", 2),
@@ -113,37 +107,24 @@ public class Achievement {
         }
     }
 
-    /**
-     * Returns the appropriate badge image URL based on tier and type
-     * Uses custom image if provided, otherwise generates path based on type and tier
-     */
     public String getBadgeImageUrl() {
-        // Return custom image if provided
         if (customImageUrl != null && !customImageUrl.trim().isEmpty()) {
             return customImageUrl;
         }
 
-        // Generate standard image path: /images/badges/{type}_{tier}.png
         return String.format("/images/badges/%s_%s.png",
                 type.getImagePrefix(),
                 tier.getImageSuffix());
     }
 
-    /**
-     * Returns the color associated with this badge's tier
-     */
     public String getBadgeColor() {
         return tier.getColorCode();
     }
 
-    /**
-     * Returns the rank/numeric value of this badge's tier
-     */
     public int getBadgeRank() {
         return tier.getRank();
     }
 
-    // Update method that preserves custom image if not provided in update
     public ResultError updateAchievement(Achievement updatedAchievement) {
         if (updatedAchievement.getName() != null && !updatedAchievement.getName().trim().isEmpty()) {
             this.name = updatedAchievement.getName();
@@ -157,7 +138,6 @@ public class Achievement {
         if (updatedAchievement.getTier() != null) {
             this.tier = updatedAchievement.getTier();
         }
-        // Only update custom image if explicitly provided (not null and not empty)
         if (updatedAchievement.getCustomImageUrl() != null) {
             this.customImageUrl = updatedAchievement.getCustomImageUrl().trim().isEmpty() ?
                     null : updatedAchievement.getCustomImageUrl();
@@ -182,7 +162,6 @@ public class Achievement {
         return true;
     }
 
-    // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -212,7 +191,4 @@ public class Achievement {
 
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
-
-    public Set<User> getUsersEarned() { return usersEarned; }
-    public void setUsersEarned(Set<User> usersEarned) { this.usersEarned = usersEarned; }
 }

@@ -1,11 +1,11 @@
 package service;
 
-import models.Poll;
-import models.User;
-import models.ResultError;
-import models.Vote;
+import models.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import repository.PollRepository;
+import repository.UserBetRepository;
+import repository.UserRepository;
 
 import javax.xml.transform.Result;
 import java.time.LocalDateTime;
@@ -17,6 +17,12 @@ import java.util.Optional;
 public class PollService {
 
     private final PollRepository pollRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserBetRepository userBetRepository;
 
     public PollService(PollRepository pollRepository){
         this.pollRepository = pollRepository;
@@ -72,7 +78,12 @@ public class PollService {
         }
 
         selectedOption.addVote(user.getId(), betAmount);
+
+        UserBet userBet = new UserBet(user.getId(), selectedOption.getId(), betAmount);
+        userBetRepository.save(userBet);
+
         user.decreasePoints(betAmount);
+        userRepository.save(user);
 
         pollRepository.save(poll);
 
@@ -88,6 +99,97 @@ public class PollService {
         pollRepository.delete(poll);
 
         return new ResultError(true, "");
+    }
+
+    private int getUserBetAmount(int voteId, int userId) {
+
+        List<UserBet> bets = userBetRepository.findByVoteId(voteId);
+
+        int amount = bets.stream()
+                .filter(bet -> bet.getUserId() == userId)
+                .mapToInt(UserBet::getBetAmount)
+                .findFirst()
+                .orElse(0);
+        return amount;
+    }
+
+    public ResultError resolvePoll(int pollId, int winningOptionId) {
+
+        Optional<Poll> pollOpt = pollRepository.findById(pollId);
+        if (pollOpt.isEmpty()) {
+            System.err.println("[RESOLVE] Poll not found!");
+            return new ResultError(false, "Poll not found");
+        }
+
+        Poll poll = pollOpt.get();
+
+        if (!poll.isExpired()) {
+            System.err.println("[RESOLVE] Poll is still active!");
+            return new ResultError(false, "Poll is still active");
+        }
+
+        Vote winningOption = poll.getVoteOptionById(winningOptionId);
+        if (winningOption == null) {
+            System.err.println("[RESOLVE] Invalid winning option!");
+            return new ResultError(false, "Invalid winning option");
+        }
+
+        int winnerPool = winningOption.getTotalBets();
+        int loserPool = 0;
+
+        for (Vote option : poll.getOptions()) {
+            if (option.getId() != winningOptionId) {
+                loserPool += option.getTotalBets();
+            }
+        }
+
+        if (loserPool == 0) {
+
+            for (Integer userId : winningOption.getListUsers()) {
+                Optional<User> userOpt = userRepository.findById(userId);
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+                    int userBet = getUserBetAmount(winningOption.getId(), userId);
+                    user.addPoints(userBet);
+                    userRepository.save(user);
+                } else {
+                    System.err.println("[RESOLVE] User " + userId + " not found!");
+                }
+            }
+
+            poll.setResolved(true);
+            pollRepository.save(poll);
+
+            return new ResultError(true, "Poll resolved - no losers, bets returned");
+        }
+
+        if (winnerPool > 0) {
+
+            for (Integer userId : winningOption.getListUsers()) {
+                Optional<User> userOpt = userRepository.findById(userId);
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+
+                    int userBet = getUserBetAmount(winningOption.getId(), userId);
+
+                    double userPercentage = (double) userBet / winnerPool;
+
+                    int winnings = (int) Math.round(userBet + (userPercentage * loserPool));
+
+                    user.addPoints(winnings);
+                    userRepository.save(user);
+
+                } else {
+                    System.err.println("[RESOLVE] Winner user " + userId + " not found!");
+                }
+            }
+        }
+
+        poll.setWinningOptionId(winningOptionId);
+        poll.setResolved(true);
+        pollRepository.save(poll);
+
+        return new ResultError(true, "Poll resolved successfully. Winners rewarded!");
     }
 
     public ResultError updatePoll(int pollId, Poll updatedPoll, User user) {

@@ -11,7 +11,6 @@ const PostAccessAuth = ({ onAuthSuccess, onCancel }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Logica ta de login
             await login('user'); 
             onAuthSuccess();
         } catch (err) {

@@ -22,7 +22,6 @@ public class IntegerListConverter implements AttributeConverter<List<Integer>, S
         try {
             return objectMapper.writeValueAsString(attribute);
         } catch (JsonProcessingException e) {
-            // Fallback to simple comma-separated format
             return attribute.toString().replace("[", "").replace("]", "").replace(" ", "");
         }
     }
@@ -33,11 +32,9 @@ public class IntegerListConverter implements AttributeConverter<List<Integer>, S
             return new ArrayList<>();
         }
         try {
-            // Try to parse as JSON array
             if (dbData.startsWith("[")) {
                 return objectMapper.readValue(dbData, new TypeReference<List<Integer>>() {});
             } else {
-                // Parse as comma-separated string
                 List<Integer> result = new ArrayList<>();
                 String[] parts = dbData.split(",");
                 for (String part : parts) {

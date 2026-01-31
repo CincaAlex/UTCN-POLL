@@ -1,5 +1,6 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -17,6 +18,7 @@ public class Comments {
 
     @ManyToOne
     @JoinColumn(name = "post_id")
+    @JsonIgnore
     private BlogPost post;
 
     @Column(nullable = false)
@@ -32,7 +34,6 @@ public class Comments {
         this.createdAt = LocalDateTime.now();
     }
 
-    // --- Getteri și setteri ---
     public int getId() {
         return id;
     }
@@ -55,6 +56,14 @@ public class Comments {
 
     public void setPost(BlogPost post) {
         this.post = post;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public String getContent() {

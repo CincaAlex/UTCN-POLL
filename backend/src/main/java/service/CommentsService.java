@@ -5,6 +5,7 @@ import models.Comments;
 import models.ResultError;
 import models.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import repository.BlogPostRepository;
 import repository.CommentsRepository;
 
@@ -30,6 +31,7 @@ public class CommentsService {
         return commentsRepository.findById(id);
     }
 
+    @Transactional
     public ResultError addComment(int postId, Comments comment) {
         Optional<BlogPost> postOpt = blogPostRepository.findById(postId);
         if (postOpt.isEmpty()) {
@@ -47,6 +49,7 @@ public class CommentsService {
         return new ResultError(true, "Comment added successfully");
     }
 
+    @Transactional
     public ResultError editComment(int commentId, String newContent) {
         Optional<Comments> commentOpt = commentsRepository.findById(commentId);
         if (commentOpt.isEmpty()) return new ResultError(false, "Comment not found");
@@ -61,11 +64,32 @@ public class CommentsService {
         return new ResultError(true, "Comment updated successfully");
     }
 
+    @Transactional
     public ResultError deleteComment(int commentId) {
-        Optional<Comments> commentOpt = commentsRepository.findById(commentId);
-        if (commentOpt.isEmpty()) return new ResultError(false, "Comment not found");
 
-        commentsRepository.delete(commentOpt.get());
-        return new ResultError(true, "Comment deleted successfully");
+        Optional<Comments> commentOpt = commentsRepository.findById(commentId);
+        if (commentOpt.isEmpty()) {
+            return new ResultError(false, "Comment not found");
+        }
+
+        Comments comment = commentOpt.get();
+
+        try {
+            if (comment.getPost() != null) {
+                BlogPost post = comment.getPost();
+                post.getComments().remove(comment);
+                blogPostRepository.save(post);
+            }
+
+            commentsRepository.delete(comment);
+            commentsRepository.flush();
+
+            boolean stillExists = commentsRepository.existsById(commentId);
+
+            return new ResultError(true, "Comment deleted successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResultError(false, "Error deleting comment: " + e.getMessage());
+        }
     }
 }

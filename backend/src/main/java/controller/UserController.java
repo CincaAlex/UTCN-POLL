@@ -6,10 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.UserService;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
@@ -41,9 +42,36 @@ public class UserController {
         }
     }
 
+    @PostMapping("/{id}/updateLastSpin")
+    public ResponseEntity<ResultError> updateLastSpin(
+            @PathVariable int id,
+            @RequestParam String date) {
+
+        Optional<User> userOpt = userService.getUserById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(new ResultError(false, "User not found"));
+        }
+
+        ResultError result = userService.updateLastSpinDate(userOpt.get(), date);
+
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Object> getUserById(@PathVariable int id) {
         Optional<User> userOpt = userService.getUserById(id);
+        return userOpt
+                .<ResponseEntity<Object>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(404).body("User not found"));
+    }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Object> getUserByEmail(@PathVariable String email) {
+        Optional<User> userOpt = userService.getUserByEmail(email);
         return userOpt
                 .<ResponseEntity<Object>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).body("User not found"));

@@ -36,10 +36,6 @@ public class AchievementService {
 
         Achievement existingAchievement = achievementOpt.get();
 
-        // Update the existing achievement with new data
-        // You'll need to add update methods in the Achievement model class
-        // For example: existingAchievement.updateFrom(updatedAchievement);
-
         achievementRepository.save(existingAchievement);
         return new ResultError(true, "Achievement updated successfully");
     }

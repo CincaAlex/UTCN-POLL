@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './ErrorPage.module.css'; // Asigură-te că extensia este .module.css
+import styles from './ErrorPage.module.css';
 
 const ErrorPage = () => {
     const navigate = useNavigate();

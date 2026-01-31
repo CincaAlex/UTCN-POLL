@@ -1,4 +1,4 @@
-import React, { useState, useContext, useLayoutEffect, useCallback, useRef } from 'react';
+import React, { useState, useContext, useLayoutEffect, useCallback, useRef, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { UserContext } from '../../context/UserContext';
 import TopBar from './TopBar';
@@ -10,251 +10,321 @@ import { useScrollDirection } from '../../hooks/useScrollDirection';
 import { useNavigate } from 'react-router-dom';
 import PostAccessAuth from '../../components/PostAccessAuth/PostAccessAuth';
 
-// --- MOCK DATA FOR USERS (To show in search) ---
-const allUsers = [
-    {
-        username: 'andreip',
-        photoUrl: 'https://i.pravatar.cc/100?u=andreip',
-        tokens: 1500,
-        friends: 45,
-        badges: [
-            { name: 'Early Adopter', symbol: '🚀', className: 'badge-gold' },
-            { name: 'Top Contributor', symbol: '✍️', className: 'badge-blue' }
-        ],
-        pollHistory: [
-            { month: 'Jan', winnings: 200 },
-            { month: 'Feb', winnings: 800 },
-            { month: 'Mar', winnings: 1500 }
-        ]
-    },
-    {
-        username: 'HighRoller_777',
-        photoUrl: 'https://i.pravatar.cc/100?u=HighRoller_777',
-        tokens: 10000,
-        friends: 120,
-        badges: [
-            { name: 'Whale', symbol: '🐋', className: 'badge-red' },
-            { name: 'Lucky', symbol: '🍀', className: 'badge-green' }
-        ],
-        pollHistory: [
-            { month: 'Jan', winnings: 5000 },
-            { month: 'Feb', winnings: 3000 },
-            { month: 'Mar', winnings: 10000 }
-        ]
-    }
-];
-
-// --- MOCK DATA ---
-const initialHomepagePosts = [
-    {
-        id: 1,
-        user: { name: 'u/andreip', avatar: 'https://i.pravatar.cc/24?u=andreip' },
-        time: new Date(new Date().getTime() - 3 * 3600 * 1000),
-        title: 'Welcome to UTCNHub!',
-        body: 'Just wanted to say this new UTCNHub platform looks amazing...',
-        counts: { likes: 25, comments: 3, shares: 2 },
-        comments: [
-            { user: { name: 'u/vladm', avatar: 'https://i.pravatar.cc/24?u=vladm' }, text: 'I agree, it looks great!' },
-            { user: { name: 'u/elenac', avatar: 'https://i.pravatar.cc/24?u=elenac' }, text: "Can't wait to see the new features." },
-            { user: { name: 'HighRoller_777', avatar: 'https://i.pravatar.cc/24?u=HighRoller_777' }, text: "This is my comment on someone else's post." },
-        ],
-        likedBy: []
-    },
-    {
-        id: 2,
-        user: { name: 'Secretariat AC', avatar: 'https://i.pravatar.cc/24?u=secretariat' },
-        time: new Date(new Date().getTime() - 5 * 3600 * 1000),
-        title: 'Upcoming Exam Session Schedule',
-        body: 'Heads up to all students! The preliminary exam session schedule has been posted on Moodle...',
-        counts: { likes: 45, comments: 1, shares: 10 },
-        comments: [
-            { user: { name: 'HighRoller_777', avatar: 'https://i.pravatar.cc/24?u=HighRoller_777' }, text: "This is my comment on the admin's post." },
-        ],
-        likedBy: []
-    }
-];
-
 const Homepage = () => {
-    const { theme } = useTheme();
-    const { user } = useContext(UserContext);
-    const scrollDirection = useScrollDirection();
+  const { theme } = useTheme();
+  const { user, token, loading: userLoading } = useContext(UserContext);
+  const scrollDirection = useScrollDirection();
 
-    const [posts, setPosts] = useState(initialHomepagePosts);
-    const [sortOrder, setSortOrder] = useState('newest');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-    const [pendingPostHash, setPendingPostHash] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [pendingPostHash, setPendingPostHash] = useState(null);
+  const [postsLoading, setPostsLoading] = useState(true);
 
-    const hasCaptured = useRef(false);
+  const hasCaptured = useRef(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setPostsLoading(true);
+      try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const response = await fetch('/api/posts', { headers });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          const normalized = (Array.isArray(data) ? data : []).map(p => ({
+            ...p,
+            content: p?.content ?? p?.body ?? '',
+          }));
+
+          const sortedData = normalized.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          setPosts(sortedData);
+        } else {
+          const errorText = await response.text();
+          console.error('[HOMEPAGE] Failed to fetch posts', response.status);
+          console.error('[HOMEPAGE] Error response:', errorText);
+          setPosts([]);
+        }
+      } catch (error) {
+        console.error('[HOMEPAGE] Error fetching posts:', error);
+        setPosts([]);
+      } finally {
+        setPostsLoading(false);
+      }
+    };
+
+    if (!userLoading) fetchPosts();
+  }, [userLoading, token]);
+
+  const getSuggestions = () => {
+    if (!searchTerm) return [];
+
+    const term = (searchTerm || '').toLowerCase();
+
+    const postSuggestions = posts
+      .filter(p => {
+        const title = (p?.title ?? '').toLowerCase();
+        const content = (p?.content ?? p?.body ?? '').toLowerCase();
+        return title.includes(term) || content.includes(term);
+      })
+      .map(p => ({
+        text: p?.title ?? '(fără titlu)',
+        type: 'post',
+        id: p?.id,
+      }));
+
+    return postSuggestions.slice(0, 5);
+  };
+
+  const handleScrollToPost = useCallback(() => {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#post-')) {
+      if (!user) return;
+
+      const postId = hash.replace('#post-', '');
+      const targetId = `#scroll-${postId}`;
+
+      setTimeout(() => {
+        const element = document.querySelector(targetId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }, 800);
+    }
+  }, [user]);
+
+  useLayoutEffect(() => {
+    if (hasCaptured.current) return;
+
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#post-')) {
+      hasCaptured.current = true;
+      setPendingPostHash(hash);
+      window.history.replaceState(null, '', window.location.pathname);
+
+      if (!user && !userLoading && !token) {
+        setIsLoginModalOpen(true);
+      } else if (user && !userLoading) {
+        handleScrollToPost();
+      }
+    }
+  }, [user, userLoading, token, handleScrollToPost]);
+
+  const handleLoginSuccess = () => {
+    setIsLoginModalOpen(false);
+    if (pendingPostHash) {
+      window.location.hash = pendingPostHash;
+      setPendingPostHash(null);
+    }
+  };
+
+  const handleLoginModalClose = () => {
+    setIsLoginModalOpen(false);
+    if (pendingPostHash) {
+      navigate('/access-denied', { replace: true });
+      setPendingPostHash(null);
+    }
+  };
+
+  const handleCreatePost = (newPost) => {
+    if (!newPost) return;
+
+    const normalized = {
+      ...newPost,
+      content: newPost?.content ?? newPost?.body ?? '',
+    };
+
+    setPosts(prev => [normalized, ...prev]);
+  };
+
+  const handleUpdatePost = async (id, newTitle, newContent) => {
+    if (!token) {
+      console.error('No authentication token found for updating post.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/posts/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newContent),
+      });
+
+      if (response.ok) {
+        setPosts(prev =>
+          prev.map(post =>
+            post.id === id
+              ? { ...post, title: newTitle, content: newContent, isEdited: true }
+              : post
+          )
+        );
+      } else {
+        console.error('Failed to update post:', response.status, response.statusText);
+        try {
+          const errorData = await response.json();
+          console.error('Error details:', errorData);
+        } catch {
+          // ignore json parse
+        }
+      }
+    } catch (error) {
+      console.error('Error updating post:', error);
+    }
+  };
+
+  const handleDeletePost = async (id) => {
+    if (!token) {
+      console.error('No authentication token found for deleting post.');
+      return;
+    }
+
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        const response = await fetch(`/api/posts/${id}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          setPosts(prev => prev.filter(post => post.id !== id));
+        } else {
+          console.error('Failed to delete post:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Error deleting post:', error);
+      }
+    }
+  };
+
+  const handleDeleteComment = async (postId, commentId) => {
     
-    const currentUsername = user?.username;
+    if (!token) {
+      console.error('[HOMEPAGE] No authentication token found for deleting comment.');
+      return;
+    }
 
-    const navigate = useNavigate();
+    if (window.confirm('Are you sure you want to delete this comment?')) {
+      try {
+        
+        const response = await fetch(`/api/comments/${commentId}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-    const getSuggestions = () => {
-        if (!searchTerm) return [];
 
-        const userSuggestions = allUsers
-            .filter(u => u.username.toLowerCase().includes(searchTerm.toLowerCase()))
-            .map(u => ({
-                text: u.username,
-                type: 'user', // This tells SearchBar to show the profile
-                userData: u    // Pass the full user object for the popup
-            }));
-
-        const postSuggestions = posts
-            .filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase()))
-            .map(p => ({
-                text: p.title,
-                type: 'post',
-                id: p.id
-            }));
-
-        return [...userSuggestions, ...postSuggestions].slice(0, 5); // Limit to top 5
-    };
-
-    // Scroll to a post if hash exists
-    const handleScrollToPost = useCallback(() => {
-        const hash = window.location.hash;
-        if (hash && hash.startsWith('#post-')) {
-            if (!user) return;
-
-            const postId = hash.replace('#post-', '');
-            const targetId = `#scroll-${postId}`;
-
-            setTimeout(() => {
-                const element = document.querySelector(targetId);
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    window.history.replaceState(null, '', window.location.pathname);
-                }
-            }, 800); 
+        if (response.ok) {
+          const result = await response.json();
+          
+          setPosts(prev =>
+            prev.map(post => {
+              if (post.id === postId) {
+                const updatedComments = (post.comments || []).filter(c => c.id !== commentId);
+                return { ...post, comments: updatedComments };
+              }
+              return post;
+            })
+          );
+        } else {
+          const errorText = await response.text();
+          console.error('[HOMEPAGE] Failed to delete comment:', response.status, errorText);
         }
-    }, [user]);
+      } catch (error) {
+        console.error('[HOMEPAGE] Error deleting comment:', error);
+      }
+    }
+  };
 
-    useLayoutEffect(() => {
-        if (hasCaptured.current) return;
-
-        const hash = window.location.hash;
-        if (hash && hash.startsWith('#post-')) {
-            hasCaptured.current = true;
-            setPendingPostHash(hash);
-
-            // ȘTERGEM hash-ul din URL IMEDIAT. 
-            // Aceasta este singura cale de a opri browserul sau alte componente să-l vadă.
-            window.history.replaceState(null, '', window.location.pathname);
-
-            if (!user) {
-                setIsLoginModalOpen(true);
-            }
-        }
-    }, [user]);
-    // --- Modal Handlers ---
-    const handleLoginSuccess = () => {
-        setIsLoginModalOpen(false);
-        if (pendingPostHash) {
-            window.location.hash = pendingPostHash;
-            handleScrollToPost();
-            setPendingPostHash(null);
-        }
-    };
-
-    const handleLoginModalClose = () => {
-        setIsLoginModalOpen(false);
-        if (pendingPostHash) {
-            // Deoarece am salvat hash-ul în pendingPostHash, 
-            // redirecționarea va funcționa chiar dacă URL-ul actual e curat.
-            navigate('/access-denied', { replace: true });
-            setPendingPostHash(null);
-        }
-    };
-
-    // --- Post CRUD handlers ---
-    const handleCreatePost = (newTitle, newBody) => {
-        const newPost = {
-            id: Date.now(),
-            user: { name: currentUsername, avatar: user?.photoUrl || 'https://i.pravatar.cc/40' },
-            time: new Date(),
-            title: newTitle,
-            body: newBody,
-            counts: { likes: 0, comments: 0, shares: 0 },
-            comments: [],
-            likedBy: [],
-            type: 'text'
-        };
-        setPosts([newPost, ...posts]);
-    };
-
-    const handleUpdatePost = (id, newTitle, newBody) => {
-        setPosts(prev => prev.map(post => post.id === id ? { ...post, title: newTitle, body: newBody, isEdited: true } : post));
-    };
-
-    const handleDeletePost = (id) => {
-        if (window.confirm("Are you sure you want to delete this post?")) {
-            setPosts(prev => prev.filter(post => post.id !== id));
-        }
-    };
-
-    const handleDeleteComment = (postId, commentIndex) => {
-        setPosts(prev => prev.map(post => {
-            if (post.id === postId) {
-                const updatedComments = post.comments.filter((_, index) => index !== commentIndex);
-                return { ...post, comments: updatedComments, counts: { ...post.counts, comments: updatedComments.length } };
-            }
-            return post;
-        }));
-    };
-
-    // --- Sorting & Search ---
-    const handleSortChange = (newSortOrder) => setSortOrder(newSortOrder);
-    const handleSearchTermChange = (newSearchTerm) => setSearchTerm(newSearchTerm);
-
-    const filteredPosts = posts.filter(post => 
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.body.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.user.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const sortedPosts = [...filteredPosts].sort((a, b) => {
-        switch (sortOrder) {
-            case 'oldest': return a.time - b.time;
-            case 'newest': return b.time - a.time;
-            case 'top': return b.counts.likes - a.counts.likes;
-            default: return 0;
-        }
+  const handleToggleLike = async (postId, updatedLikedBy) => {
+    
+    setPosts(prev => {
+      const updated = prev.map(post =>
+        post.id === postId
+          ? { ...post, likedBy: updatedLikedBy }
+          : post
+      );
+      
+      const updatedPost = updated.find(p => p.id === postId);
+      
+      return updated;
     });
+  };
 
-    return (
-        <div className={`${styles.homepage} ${styles[theme]}`}>
-            {isLoginModalOpen && (
-                <PostAccessAuth 
-                    onAuthSuccess={handleLoginSuccess} 
-                    onCancel={handleLoginModalClose} 
-                />
-            )}
+  const handleSortChange = (newSortOrder) => setSortOrder(newSortOrder);
+  const handleSearchTermChange = (newSearchTerm) => setSearchTerm(newSearchTerm);
 
-            <TopBar />
-            <SearchBar 
-                isHidden={scrollDirection === 'down'} 
-                onSortChange={handleSortChange} 
-                currentSort={sortOrder} 
-                searchTerm={searchTerm}
-                onSearchTermChange={handleSearchTermChange}
-                suggestions={getSuggestions()} // Passing the typed suggestions here
-                theme={theme}
-            />
-            <main className={styles.mainContainer}>
-                <CreatePost onCreatePost={handleCreatePost} />
-                <Feed 
-                    posts={sortedPosts} 
-                    onUpdatePost={handleUpdatePost} 
-                    onDeletePost={handleDeletePost} 
-                    onDeleteComment={handleDeleteComment} 
-                    currentUser={currentUsername} 
-                />
-            </main>
-        </div>
-    );
+  const term = (searchTerm || '').toLowerCase();
+
+  const filteredPosts = posts.filter(post => {
+    const title = (post?.title ?? '').toLowerCase();
+    const content = (post?.content ?? post?.body ?? '').toLowerCase();
+    const authorName = (post?.author?.name ?? '').toLowerCase();
+    return title.includes(term) || content.includes(term) || authorName.includes(term);
+  });
+
+  const sortedPosts = [...filteredPosts].sort((a, b) => {
+    switch (sortOrder) {
+      case 'oldest':
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      case 'newest':
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      case 'top': {
+        const aLikes = Array.isArray(a?.likedBy) ? a.likedBy.length : 0;
+        const bLikes = Array.isArray(b?.likedBy) ? b.likedBy.length : 0;
+        return bLikes - aLikes;
+      }
+      default:
+        return 0;
+    }
+  });
+
+  if (userLoading || postsLoading) {
+    return <div className={styles.loadingContainer}>Loading homepage...</div>;
+  }
+
+  return (
+    <div className={`${styles.homepage} ${styles[theme]}`}>
+      {isLoginModalOpen && (
+        <PostAccessAuth
+          onAuthSuccess={handleLoginSuccess}
+          onCancel={handleLoginModalClose}
+        />
+      )}
+
+      <TopBar />
+      <SearchBar
+        isHidden={scrollDirection === 'down'}
+        onSortChange={handleSortChange}
+        currentSort={sortOrder}
+        searchTerm={searchTerm}
+        onSearchTermChange={handleSearchTermChange}
+        suggestions={getSuggestions()}
+        theme={theme}
+      />
+
+      <main className={styles.mainContainer}>
+        <CreatePost onCreatePost={handleCreatePost} />
+        <Feed
+          posts={sortedPosts}
+          onUpdatePost={handleUpdatePost}
+          onDeletePost={handleDeletePost}
+          onDeleteComment={handleDeleteComment}
+          onToggleLike={handleToggleLike}
+          currentUser={user}
+        />
+      </main>
+    </div>
+  );
 };
 
 export default Homepage;

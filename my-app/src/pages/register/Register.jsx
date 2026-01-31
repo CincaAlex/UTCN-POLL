@@ -53,7 +53,7 @@ function Register() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
 
@@ -61,8 +61,30 @@ function Register() {
       setErrors(validationErrors);
     } else {
       setErrors({});
-      console.log('Data sent:', formData);
-      navigate('/homepage');
+      try {
+        const response = await fetch('/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          navigate('/login'); 
+        } else {
+          setErrors({ form: data.message || 'Registration failed' });
+        }
+      } catch (error) {
+        console.error('Registration error:', error);
+        setErrors({ form: 'An error occurred during registration.' });
+      }
     }
   };
 

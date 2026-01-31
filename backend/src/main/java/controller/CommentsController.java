@@ -2,8 +2,10 @@ package controller;
 
 import models.Comments;
 import models.ResultError;
+import models.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import repository.UserRepository;
 import service.CommentsService;
 
 import java.util.List;
@@ -15,9 +17,11 @@ import java.util.Optional;
 public class CommentsController {
 
     private final CommentsService commentsService;
+    private final UserRepository userRepository;
 
-    public CommentsController(CommentsService commentsService) {
+    public CommentsController(CommentsService commentsService, UserRepository userRepository) {
         this.commentsService = commentsService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -54,11 +58,48 @@ public class CommentsController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResultError> deleteComment(@PathVariable int id) {
-        ResultError result = commentsService.deleteComment(id);
-        if (result.isSuccess()) {
-            return ResponseEntity.ok(result);
+    public ResponseEntity<?> deleteComment(@PathVariable int id, java.security.Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(new ResultError(false, "Unauthorized"));
         }
-        return ResponseEntity.badRequest().body(result);
+
+        try {
+            Optional<Comments> commentOpt = commentsService.getCommentById(id);
+            if (commentOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(new ResultError(false, "Comment not found"));
+            }
+
+            Comments comment = commentOpt.get();
+
+            String email = principal.getName();
+            Optional<User> userOpt = userRepository.findByEmail(email);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(401).body(new ResultError(false, "User not found"));
+            }
+
+            User currentUser = userOpt.get();
+
+            boolean isCommentOwner = comment.getAuthor() != null && comment.getAuthor().getId() == currentUser.getId();
+            boolean isPostOwner = comment.getPost() != null &&
+                    comment.getPost().getAuthor() != null &&
+                    comment.getPost().getAuthor().getId() == currentUser.getId();
+            boolean isAdmin = "ADMIN".equals(currentUser.getUserType());
+
+            if (!isCommentOwner && !isPostOwner && !isAdmin) {
+                return ResponseEntity.status(403).body(new ResultError(false, "Forbidden: You don't have permission to delete this comment"));
+            }
+
+            ResultError result = commentsService.deleteComment(id);
+
+            if (result.isSuccess()) {
+                return ResponseEntity.ok(result);
+            }
+            return ResponseEntity.badRequest().body(result);
+
+        } catch (Exception e) {
+            System.err.println("Error deleting comment: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(new ResultError(false, "Error deleting comment: " + e.getMessage()));
+        }
     }
 }

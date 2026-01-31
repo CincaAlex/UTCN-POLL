@@ -1,5 +1,6 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -11,11 +12,14 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("USER")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
 
     @Id
@@ -45,22 +49,16 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // JSON columns for inheritance
-    @Convert(converter = IntegerListConverter.class)
-    @Column(name = "created_polls", columnDefinition = "JSON")
-    private List<Integer> createdPolls;
+    @Transient
+    private List<Integer> createdPolls = new ArrayList<>();
 
-    @Convert(converter = IntegerListConverter.class)
-    @Column(name = "achievement_list", columnDefinition = "JSON")
-    private List<Integer> achievementList;
+    @Transient
+    private List<Integer> achievementList = new ArrayList<>();
 
-    @Convert(converter = IntegerListConverter.class)
-    @Column(name = "vote_list", columnDefinition = "JSON")
-    private List<Integer> voteList;
+    @Transient
+    private List<Integer> voteList = new ArrayList<>();
 
-    // Constructors
     public User() {
-        // Initialize lists to prevent null
         this.createdPolls = new ArrayList<>();
         this.achievementList = new ArrayList<>();
         this.voteList = new ArrayList<>();
@@ -77,7 +75,6 @@ public class User {
         this.voteList = new ArrayList<>();
     }
 
-    // Lifecycle callback
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
@@ -85,7 +82,6 @@ public class User {
         }
     }
 
-    // Password hashing SHA-256
     private String hashPassword(String plainPassword) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -96,7 +92,6 @@ public class User {
         }
     }
 
-    // Getter and Setter methods
     public int getId() { return id; }
 
     public String getName() { return name; }
@@ -161,14 +156,18 @@ public class User {
         return hashPassword(plainPassword).equals(this.password);
     }
 
-    // Get user type for discriminator
+    @JsonProperty("tokens")
+    public int getTokens() {
+        return this.points;
+    }
+
+    @JsonProperty("userType")
     public String getUserType() {
         if (this instanceof Admin) return "ADMIN";
         if (this instanceof Member) return "MEMBER";
         return "USER";
     }
 
-    // Helper methods for lists
     public void addToCreatedPolls(int pollId) {
         if (!createdPolls.contains(pollId)) {
             createdPolls.add(pollId);

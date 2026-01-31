@@ -15,7 +15,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findById(int id);
     User save(User user);
 
-    //top leaderboard with a 'limit' of users
     @Query("SELECT u FROM User u ORDER BY u.points DESC")
     List<User> findTopByOrderByPointsDesc(int limit);
 

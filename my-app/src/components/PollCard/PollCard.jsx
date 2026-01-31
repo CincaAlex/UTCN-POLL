@@ -95,10 +95,12 @@ const PollOptionItem = ({
                         transition={{ duration: 1.2 }}
                     />
                     <div className={styles.resultContent}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            {isWinner && <IoMdTrophy className={styles.winnerIcon} />}
-                            <span className={styles.optionText}>{option.text}</span>
-                        </div>
+                        <span className={styles.voteStats}>
+                            <AnimatedCounter value={percentage} format={(v) => `${Math.round(v)}%`} />
+                            {' ('}
+                            <AnimatedCounter value={option.votes} />
+                            {' pts)'} {/* ✅ Adaugă "pts" pentru a arăta că sunt puncte */}
+                        </span>
                         <span className={styles.voteStats}>
                             <AnimatedCounter value={percentage} format={(v) => `${Math.round(v)}%`} />
                             {' ('}
@@ -122,7 +124,7 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
     const [betError, setBetError] = useState('');
 
     const hasVoted =
-        poll.userVotedOptionIds.length > 0 ||
+        (poll.userVotedOptionIds?.length > 0) ||
         poll.status === 'Ended';
 
     const isEnded = poll.status === 'Ended';
@@ -130,17 +132,15 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
 
     const isOwner = user && poll.author && poll.author.name === user.name;
 
-    const winnerId =
-        poll.totalVotes === 0
-            ? null
-            : poll.options.reduce((a, b) => (a.votes > b.votes ? a : b)).id;
+    const winnerId = poll.winningOptionId || 
+    (poll.totalVotes === 0
+        ? null
+        : poll.options.reduce((a, b) => (a.votes > b.votes ? a : b)).id);
 
     const userWon =
         isEnded &&
         winnerId &&
-        poll.userVotedOptionIds.includes(winnerId);
-
-    /* -------- Bet Validation (FIXED) -------- */
+        poll.userVotedOptionIds?.includes(winnerId);
 
     useEffect(() => {
         const amount = Number(betAmount); 
@@ -168,44 +168,26 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
             : setSelectedOptions([optionId]);
     };
 
-    /* -------- Vote (FIXED) -------- */
 
     const handleVoteClick = () => {
-        // Use betError in the check
         if (selectedOptions.length === 0 || showResults || betError) return;
 
         const amount = Number(betAmount);
 
-        const updatedOptions = poll.options.map(opt => {
-                if (selectedOptions.includes(opt.id)) {
-                    return { ...opt, votes: opt.votes + 1 };
-                }
-                return opt;
-            });
+        onVote(poll.id, selectedOptions[0], amount);
 
-            const updatedPoll = {
-                ...poll,
-                options: updatedOptions,
-                totalVotes: poll.totalVotes + selectedOptions.length,
-                userVotedOptionIds: selectedOptions,
+        try {
+            addPollBet({
+                pollId: poll.id,
+                optionIds: selectedOptions,
                 betAmount: amount
-            };
+            });
+        } catch (err) {
+            console.error(err.message);
+        }
 
-            onVote(updatedPoll);
-
-            // --- ADDPOLLBET INTEGRATION ---
-            try {
-                addPollBet({
-                    pollId: poll.id,
-                    optionIds: selectedOptions,
-                    betAmount: amount
-                });
-            } catch (err) {
-                console.error(err.message);
-            }
-
-            setSelectedOptions([]);
-            setBetAmount('');
+        setSelectedOptions([]);
+        setBetAmount('');
     };
 
     const displayedOptions = [...poll.options].sort((a, b) =>
@@ -347,7 +329,6 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
                 {/* Vote Button */}
                 <button
                     className={styles.voteButton}
-                    // Disable if no option selected, results shown, or any betError exists
                     disabled={selectedOptions.length === 0 || showResults || !!betError} 
                     onClick={handleVoteClick}
                 >
