@@ -13,9 +13,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final security.JwtAuthenticationFilter jwtFilter;
+    private final utils .JwtAuthenticationFilter jwtFilter;
 
-    public SecurityConfig(security.JwtAuthenticationFilter jwtFilter) {
+    public SecurityConfig(utils.JwtAuthenticationFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
     }
 
@@ -24,13 +24,11 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .httpBasic(AbstractHttpConfigurer::disable)     // ✅ scoate Basic
-                .formLogin(AbstractHttpConfigurer::disable)     // ✅ scoate form login
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        // dacă vrei user/email doar când ești logat:
                         .requestMatchers("/users/email/**").authenticated()
-                        // restul api-ului protejat:
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()
                 )

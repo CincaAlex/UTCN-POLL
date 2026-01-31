@@ -18,7 +18,7 @@ public class Comments {
 
     @ManyToOne
     @JoinColumn(name = "post_id")
-    @JsonIgnore  // ✅ Evită循環 reference când serializăm JSON
+    @JsonIgnore
     private BlogPost post;
 
     @Column(nullable = false)
@@ -34,7 +34,6 @@ public class Comments {
         this.createdAt = LocalDateTime.now();
     }
 
-    // --- Getteri și setteri ---
     public int getId() {
         return id;
     }
@@ -59,7 +58,6 @@ public class Comments {
         this.post = post;
     }
 
-    // ✅ IMPORTANT: Frontend folosește "comment" ca field name
     public String getComment() {
         return comment;
     }
@@ -68,7 +66,6 @@ public class Comments {
         this.comment = comment;
     }
 
-    // Alias pentru compatibilitate (dacă mai ai cod vechi care folosește getContent)
     public String getContent() {
         return comment;
     }

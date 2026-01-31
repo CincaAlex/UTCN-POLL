@@ -64,7 +64,6 @@ public class BlogPostController {
         return ResponseEntity.ok(blogPostService.editPost(id, content));
     }
 
-    // ✅ FIX: Primește doar textul comentariului, author vine din JWT
     @PostMapping("/{id}/comments")
     public ResponseEntity<?> addComment(
             @PathVariable int id,
@@ -76,7 +75,6 @@ public class BlogPostController {
         }
 
         try {
-            // Găsește autorul din JWT
             String email = principal.getName();
             Optional<User> authorOpt = userRepository.findByEmail(email);
 
@@ -84,23 +82,19 @@ public class BlogPostController {
                 return ResponseEntity.status(401).body(new ResultError(false, "User not found"));
             }
 
-            // Găsește post-ul
             Optional<BlogPost> postOpt = blogPostService.getPostById(id);
             if (postOpt.isEmpty()) {
                 return ResponseEntity.status(404).body(new ResultError(false, "Post not found"));
             }
 
-            // Creează comentariul
             Comments comment = new Comments(authorOpt.get(), req.comment());
 
-            // Adaugă comentariul
             ResultError result = blogPostService.addComment(id, comment);
 
             if (!result.isSuccess()) {
                 return ResponseEntity.badRequest().body(result);
             }
 
-            // ✅ Returnează comentariul salvat (cu id din DB)
             return ResponseEntity.ok(comment);
 
         } catch (Exception e) {
@@ -108,7 +102,6 @@ public class BlogPostController {
         }
     }
 
-    // ✅ FIX: Returnează post-ul complet cu likedBy după toggle
     @PostMapping("/{id}/like")
     public ResponseEntity<?> toggleLike(@PathVariable int id, java.security.Principal principal) {
         if (principal == null) {
@@ -116,14 +109,12 @@ public class BlogPostController {
         }
 
         try {
-            // Toggle like-ul
             ResultError result = blogPostService.toggleLikeByEmail(id, principal.getName());
 
             if (!result.isSuccess()) {
                 return ResponseEntity.badRequest().body(result);
             }
 
-            // ✅ Returnează post-ul complet actualizat cu likedBy
             Optional<BlogPost> updatedPost = blogPostService.getPostById(id);
 
             if (updatedPost.isEmpty()) {
@@ -144,7 +135,6 @@ public class BlogPostController {
         }
 
         try {
-            // Get the post
             Optional<BlogPost> postOpt = blogPostService.getPostById(id);
             if (postOpt.isEmpty()) {
                 return ResponseEntity.status(404).body(new ResultError(false, "Post not found"));
@@ -152,7 +142,6 @@ public class BlogPostController {
 
             BlogPost post = postOpt.get();
 
-            // Get current user
             String email = principal.getName();
             Optional<User> userOpt = userRepository.findByEmail(email);
             if (userOpt.isEmpty()) {
@@ -161,7 +150,6 @@ public class BlogPostController {
 
             User currentUser = userOpt.get();
 
-            // ✅ Check permissions: must be post owner OR admin
             boolean isOwner = post.getAuthor() != null && post.getAuthor().getId() == currentUser.getId();
             boolean isAdmin = "ADMIN".equals(currentUser.getUserType());
 
@@ -169,7 +157,6 @@ public class BlogPostController {
                 return ResponseEntity.status(403).body(new ResultError(false, "Forbidden: You don't have permission to delete this post"));
             }
 
-            // Delete the post
             ResultError result = blogPostService.deletePost(id);
             return ResponseEntity.ok(result);
 
@@ -180,6 +167,5 @@ public class BlogPostController {
 
     public record CreatePostRequest(String title, String content) {}
 
-    // ✅ DTO pentru adăugare comentariu
     public record AddCommentRequest(String comment) {}
 }

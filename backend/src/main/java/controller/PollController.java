@@ -28,24 +28,20 @@ public class PollController {
 
     @GetMapping
     public ResponseEntity<?> getAllPolls(Authentication auth) {
-        System.out.println("🗳️ [BACKEND] Fetching all polls");
 
         try {
             List<Poll> polls = pollService.getAllPolls();
 
             Integer currentUserId = null;
 
-            // Determină userId-ul curent dacă e autentificat
             if (auth != null) {
                 String email = auth.getName();
                 Optional<User> userOpt = userRepository.findByEmail(email);
                 if (userOpt.isPresent()) {
                     currentUserId = userOpt.get().getId();
-                    System.out.println("🗳️ [BACKEND] Current user ID: " + currentUserId);
                 }
             }
 
-            // Construiește răspunsul cu userVotedOptionIds
             List<Map<String, Object>> pollsWithVoteInfo = new ArrayList<>();
 
             for (Poll poll : polls) {
@@ -62,17 +58,15 @@ public class PollController {
                 pollData.put("creatorAvatar", poll.getCreatorAvatar());
                 pollData.put("resolved", poll.getResolvedStatus());
 
-                // ✅ Adaugă userVotedOptionIds
                 pollData.put("userVotedOptionIds", poll.getUserVotedOptionIds(currentUserId));
                 pollData.put("winningOptionId", poll.getWinningOption());
                 pollsWithVoteInfo.add(pollData);
             }
 
-            System.out.println("🗳️ [BACKEND] Found " + polls.size() + " polls");
             return ResponseEntity.ok(pollsWithVoteInfo);
 
         } catch (Exception e) {
-            System.err.println("🗳️ [BACKEND] Error fetching polls: " + e.getMessage());
+            System.err.println("[BACKEND] Error fetching polls: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).body(new ResultError(false, "Error fetching polls: " + e.getMessage()));
         }
@@ -98,7 +92,6 @@ public class PollController {
 
             User user = userOpt.get();
 
-            // Verifică dacă este admin
             if (!"ADMIN".equals(user.getUserType())) {
                 return ResponseEntity.status(403).body(new ResultError(false, "Only admins can resolve polls"));
             }
@@ -145,16 +138,11 @@ public class PollController {
 
             User creator = creatorOpt.get();
 
-            // Check if user is admin
             if (!"ADMIN".equals(creator.getUserType())) {
                 return ResponseEntity.status(403).body(new ResultError(false, "Only admins can create polls"));
             }
 
-            System.out.println("📅 [CREATE] Received endDate: " + poll.getEndDate());
-
             ResultError result = pollService.createPoll(poll, creator);
-
-            System.out.println("📅 [CREATE] Final endDate in DB: " + poll.getEndDate());
 
             if (result.isSuccess()) {
                 return ResponseEntity.ok(poll);
@@ -230,7 +218,6 @@ public class PollController {
 
             Poll poll = pollOpt.get();
 
-            // Check permissions: must be poll creator OR admin
             boolean isCreator = poll.getCreatorId() == user.getId();
             boolean isAdmin = "ADMIN".equals(user.getUserType());
 
@@ -262,6 +249,5 @@ public class PollController {
         return ResponseEntity.ok(results);
     }
 
-    // DTO for vote request
     public record VoteRequest(int optionId, int betAmount) {}
 }

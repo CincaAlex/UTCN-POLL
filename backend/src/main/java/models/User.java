@@ -49,8 +49,6 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // ✅ Simplified: Remove JSON columns that cause serialization issues
-    // These will be managed through service layer if needed
     @Transient
     private List<Integer> createdPolls = new ArrayList<>();
 
@@ -60,9 +58,7 @@ public class User {
     @Transient
     private List<Integer> voteList = new ArrayList<>();
 
-    // Constructors
     public User() {
-        // Initialize lists to prevent null
         this.createdPolls = new ArrayList<>();
         this.achievementList = new ArrayList<>();
         this.voteList = new ArrayList<>();
@@ -79,7 +75,6 @@ public class User {
         this.voteList = new ArrayList<>();
     }
 
-    // Lifecycle callback
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
@@ -87,7 +82,6 @@ public class User {
         }
     }
 
-    // Password hashing SHA-256
     private String hashPassword(String plainPassword) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -98,7 +92,6 @@ public class User {
         }
     }
 
-    // Getter and Setter methods
     public int getId() { return id; }
 
     public String getName() { return name; }
@@ -168,7 +161,6 @@ public class User {
         return this.points;
     }
 
-    // ✅ IMPORTANT: Expune userType în JSON pentru frontend
     @JsonProperty("userType")
     public String getUserType() {
         if (this instanceof Admin) return "ADMIN";
@@ -176,7 +168,6 @@ public class User {
         return "USER";
     }
 
-    // Helper methods for lists
     public void addToCreatedPolls(int pollId) {
         if (!createdPolls.contains(pollId)) {
             createdPolls.add(pollId);

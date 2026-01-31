@@ -16,7 +16,6 @@ public class PollDTO {
     private String creatorAvatar;
     private List<Integer> userVotedOptionIds;
 
-    // Constructor
     public PollDTO(Poll poll, Integer currentUserId) {
         this.id = poll.getId();
         this.title = poll.getTitle();
@@ -31,7 +30,6 @@ public class PollDTO {
         this.userVotedOptionIds = poll.getUserVotedOptionIds(currentUserId);
     }
 
-    // Getters
     public int getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }

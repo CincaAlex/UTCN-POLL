@@ -10,7 +10,6 @@ const ViewPolls = () => {
     const [loading, setLoading] = useState(true);
     const { user, token, updateUser } = useContext(UserContext);
 
-    // Calculează timpul rămas până la endDate
     const calculateTimeLeft = (endDate) => {
         const end = new Date(endDate);
         const now = new Date();
@@ -27,10 +26,8 @@ const ViewPolls = () => {
         return `${minutes}m`;
     };
 
-    // ✅ Fetch polls from backend
     useEffect(() => {
         const fetchPolls = async () => {
-            console.log('🗳️ [POLLS] Fetching all polls...');
             setLoading(true);
             
             try {
@@ -39,23 +36,21 @@ const ViewPolls = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('🗳️ [POLLS] Raw data:', data);
                     
-                    // Normalizează datele pentru PollCard
                     const normalizedPolls = data.map(poll => ({
                         id: poll.id,
                         question: poll.title,
                         options: poll.options?.map(opt => ({
                             id: opt.id,
                             text: opt.optionText,
-                            votes: opt.totalBets || 0  // ✅ Folosește totalBets în loc de totalVotes
+                            votes: opt.totalBets || 0
                         })) || [],
                         totalVotes: poll.options?.reduce((sum, opt) => sum + (opt.totalBets || 0), 0) || 0, // ✅ Suma totalBets
                         author: {
                             name: poll.creatorName || `User #${poll.creatorId}`,
                             avatar: poll.creatorAvatar || 'https://i.pravatar.cc/150'
                         },
-                        winningOptionId: poll.winningOptionId, // ✅ Adaugă asta
+                        winningOptionId: poll.winningOptionId,
                         status: poll.expired ? 'Ended' : 'Active',
                         isAnonymous: poll.isAnonymous || false,
                         allowMultiple: poll.allowMultiple || false,
@@ -64,14 +59,13 @@ const ViewPolls = () => {
                         betAmount: poll.betAmount || 0
                     }));
                     
-                    console.log('🗳️ [POLLS] Normalized polls:', normalizedPolls);
                     setPolls(normalizedPolls);
                 }else {
-                    console.error('🗳️ [POLLS] Failed to fetch polls:', response.status);
+                    console.error('[POLLS] Failed to fetch polls:', response.status);
                     setPolls([]);
                 }
             } catch (error) {
-                console.error('🗳️ [POLLS] Error fetching polls:', error);
+                console.error('[POLLS] Error fetching polls:', error);
                 setPolls([]);
             } finally {
                 setLoading(false);
@@ -86,8 +80,6 @@ const ViewPolls = () => {
             alert('Please log in to vote');
             return;
         }
-
-        console.log('🗳️ [POLLS] Voting on poll:', { pollId, optionId, betAmount });
 
         try {
             const response = await fetch(`/api/polls/${pollId}/vote`, {
@@ -104,18 +96,14 @@ const ViewPolls = () => {
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('🗳️ [POLLS] Vote successful:', result);
                 
-                // ✅ Refresh polls to get updated data
                 const pollsResponse = await fetch('/api/polls', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 
                 if (pollsResponse.ok) {
                     const data = await pollsResponse.json();
-                    console.log('🗳️ [POLLS] Refreshed data:', data);
                     
-                    // ✅ Normalizează din nou datele
                     const normalizedPolls = data.map(poll => ({
                         id: poll.id,
                         question: poll.title,
@@ -133,32 +121,28 @@ const ViewPolls = () => {
                         isAnonymous: poll.isAnonymous || false,
                         allowMultiple: poll.allowMultiple || false,
                         pollDuration: calculateTimeLeft(poll.endDate),
-                        userVotedOptionIds: poll.userVotedOptionIds || [optionId], // ✅ Marchează că userul a votat
+                        userVotedOptionIds: poll.userVotedOptionIds || [optionId],
                         betAmount: poll.betAmount || 0
                     }));
                     
-                    console.log('🗳️ [POLLS] Normalized after vote:', normalizedPolls);
                     setPolls(normalizedPolls);
                     
-                    // ✅ IMPORTANT: Actualizează și punctele userului în UserContext
                     const userResponse = await fetch(`/api/users/email/${encodeURIComponent(user.email)}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     
                     if (userResponse.ok) {
                         const updatedUser = await userResponse.json();
-                        console.log('👤 [POLLS] Updated user tokens:', updatedUser.tokens);
-                        // Actualizează userul în context
                         updateUser(updatedUser);
                     }
                 }
             } else {
                 const error = await response.json();
-                console.error('🗳️ [POLLS] Vote failed:', error);
+                console.error('[POLLS] Vote failed:', error);
                 alert(error.message || 'Failed to vote');
             }
         } catch (error) {
-            console.error('🗳️ [POLLS] Error voting:', error);
+            console.error('[POLLS] Error voting:', error);
             alert('Error voting on poll');
         }
     };
@@ -170,7 +154,6 @@ const ViewPolls = () => {
         }
 
         if (window.confirm("Are you sure you want to delete this poll?")) {
-            console.log('🗳️ [POLLS] Deleting poll:', pollId);
 
             try {
                 const response = await fetch(`/api/polls/${pollId}`, {
@@ -181,15 +164,14 @@ const ViewPolls = () => {
                 });
 
                 if (response.ok) {
-                    console.log('🗳️ [POLLS] Poll deleted successfully');
                     setPolls(currentPolls => currentPolls.filter(p => p.id !== pollId));
                 } else {
                     const error = await response.json();
-                    console.error('🗳️ [POLLS] Delete failed:', error);
+                    console.error('[POLLS] Delete failed:', error);
                     alert(error.message || 'Failed to delete poll');
                 }
             } catch (error) {
-                console.error('🗳️ [POLLS] Error deleting poll:', error);
+                console.error('[POLLS] Error deleting poll:', error);
                 alert('Error deleting poll');
             }
         }
@@ -197,10 +179,9 @@ const ViewPolls = () => {
 
     const handleEditPoll = (poll) => {
         alert(`Edit functionality for poll "${poll.title}" would open here.`);
-        // TODO: Navigate to /edit-poll/:id or open a modal
+        // TODO
     };
 
-    // ✅ Sort polls: Active first, then by total votes
     const sortedPolls = [...polls].sort((a, b) => {
         const aIsExpired = new Date(a.endDate) < new Date();
         const bIsExpired = new Date(b.endDate) < new Date();
@@ -208,7 +189,6 @@ const ViewPolls = () => {
         if (aIsExpired && !bIsExpired) return 1;
         if (!aIsExpired && bIsExpired) return -1;
         
-        // Both active or both expired - sort by total votes
         const aTotalVotes = a.options?.reduce((sum, opt) => sum + (opt.totalVotes || 0), 0) || 0;
         const bTotalVotes = b.options?.reduce((sum, opt) => sum + (opt.totalVotes || 0), 0) || 0;
         return bTotalVotes - aTotalVotes;

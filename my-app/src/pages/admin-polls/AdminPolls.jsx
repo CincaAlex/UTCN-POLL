@@ -23,16 +23,10 @@ const AdminPolls = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('🏆 [ADMIN] Raw polls data:', data);
                 
-                // Filtrează doar poll-urile expirate
                 const expiredPolls = data.filter(poll => poll.expired && !poll.resolved);
-                console.log('🏆 [ADMIN] Expired polls:', expiredPolls);
-                console.log('🏆 [ADMIN] Total expired:', expiredPolls.length);
                 
-                // Normalizează datele
                 const normalizedPolls = expiredPolls.map(poll => {
-                    console.log('🏆 [ADMIN] Processing poll:', poll.id, poll.title);
                     return {
                         id: poll.id,
                         question: poll.title,
@@ -49,7 +43,6 @@ const AdminPolls = () => {
                     };
                 });
                 
-                console.log('🏆 [ADMIN] Normalized polls:', normalizedPolls);
                 setPolls(normalizedPolls);
             }
         } catch (error) {
@@ -81,7 +74,6 @@ const AdminPolls = () => {
                 const result = await response.json();
                 alert(result.message || 'Poll resolved successfully!');
                 
-                // Refresh polls
                 fetchExpiredPolls();
                 setSelectedPoll(null);
                 setSelectedWinner(null);

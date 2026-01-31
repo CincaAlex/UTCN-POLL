@@ -37,13 +37,11 @@ public class AuthService {
         }
 
         User user = new User(name.trim(), email.trim(), password);
-        // cod de verificare simplu (6 cifre)
         user.setVerificationCode(100000 + new Random().nextInt(900000));
         user.setVerified(false);
 
         userRepository.save(user);
 
-        // dacă vrei, poți trimite codul în mesaj (pt debug/dev):
         return new ResultError(true, "Registered successfully. Verification code: " + user.getVerificationCode());
     }
 
@@ -65,11 +63,7 @@ public class AuthService {
             return new ResultError(false, "Invalid credentials");
         }
 
-        // (opțional) dacă vrei să blochezi login până e verificat:
-        // if (!user.isVerified()) return new ResultError(false, "Account not verified");
-
         String token = jwtUtil.generateToken(user.getEmail());
-        // Frontend-ul tău ia token-ul din "message" (data.message)
         return new ResultError(true, token);
     }
 
@@ -82,7 +76,6 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    // Optional: endpoint /auth/verify ar putea apela asta, dar tu validezi în controller.
     public boolean validateToken(String token) {
         return jwtUtil.validateToken(token);
     }

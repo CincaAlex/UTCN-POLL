@@ -11,16 +11,14 @@ import {
   Area
 } from 'recharts';
 
-// --- SUB-COMPONENT: VIEW-ONLY PROFILE POPUP ---
 const UserProfilePopup = ({ user, onClose, theme }) => {
   if (!user) return null;
 
-  // Use the data passed from the search suggestion
   const { friends = 0, tokens = 0, badges = [], username, photoUrl, pollHistory = [] } = user;
 
   return (
     <div className={`modal-backdrop ${theme}`} onClick={onClose}>
-      {/* stopPropagation prevents closing the modal when clicking inside the profile card */}
+      {}
       <div
             className={`modal-panel ${theme}`}
             style={{
@@ -95,20 +93,17 @@ const UserProfilePopup = ({ user, onClose, theme }) => {
   );
 };
 
-// --- MAIN SEARCHBAR COMPONENT ---
 const SearchBar = ({ isHidden, onSortChange, currentSort, searchTerm, onSearchTermChange, suggestions, theme }) => {
     const [selectedUser, setSelectedUser] = useState(null);
 
     const handleSearch = (e) => {
         e.preventDefault();
-        console.log('Search submitted for:', searchTerm);
     };
 
     const handleSuggestionClick = (suggestion) => {
         if (suggestion.type === 'user') {
             setSelectedUser(suggestion.userData || suggestion);
         } else if (suggestion.type === 'post') {
-            // Find the element with the ID we assigned in the Feed
             const targetId = `scroll-${suggestion.id}`;
             const element = document.getElementById(targetId);
 
@@ -121,7 +116,6 @@ const SearchBar = ({ isHidden, onSortChange, currentSort, searchTerm, onSearchTe
                     element.classList.remove('post-highlight-active');
                 }, 3000);
         
-            // Clear search after clicking a post
             onSearchTermChange(''); 
         }
     }

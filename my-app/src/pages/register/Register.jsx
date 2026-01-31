@@ -77,7 +77,6 @@ function Register() {
         const data = await response.json();
 
         if (response.ok && data.success) {
-          console.log('Registration successful:', data);
           navigate('/login'); 
         } else {
           setErrors({ form: data.message || 'Registration failed' });

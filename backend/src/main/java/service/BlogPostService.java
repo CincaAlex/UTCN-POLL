@@ -25,34 +25,12 @@ public class BlogPostService {
     public List<BlogPost> getAllPosts() {
         List<BlogPost> posts = blogPostRepository.findAll();
 
-        // ✅ DEBUG: Log câte comentarii are fiecare post
-        System.out.println("🔍 [BACKEND] Fetched " + posts.size() + " posts");
-        for (BlogPost post : posts) {
-            int commentCount = post.getComments() != null ? post.getComments().size() : 0;
-            System.out.println("🔍 [BACKEND] Post ID: " + post.getId() +
-                    " | Title: " + post.getTitle() +
-                    " | Comments: " + commentCount);
-
-            if (commentCount > 0) {
-                System.out.println("🔍 [BACKEND] Comments for post " + post.getId() + ":");
-                for (Comments c : post.getComments()) {
-                    System.out.println("   - Comment ID: " + c.getId() +
-                            " | Author: " + (c.getAuthor() != null ? c.getAuthor().getName() : "null") +
-                            " | Text: " + c.getComment());
-                }
-            }
-        }
-
         return posts;
     }
 
     public Optional<BlogPost> getPostById(int id) {
         Optional<BlogPost> post = blogPostRepository.findById(id);
 
-        if (post.isPresent()) {
-            int commentCount = post.get().getComments() != null ? post.get().getComments().size() : 0;
-            System.out.println("🔍 [BACKEND] Found post ID: " + id + " with " + commentCount + " comments");
-        }
 
         return post;
     }
@@ -96,16 +74,7 @@ public class BlogPostService {
 
         BlogPost post = postOpt.get();
 
-        System.out.println("🔍 [BACKEND] Adding comment to post ID: " + postId);
-        System.out.println("🔍 [BACKEND] Comment text: " + comment.getComment());
-        System.out.println("🔍 [BACKEND] Comment author: " + (comment.getAuthor() != null ? comment.getAuthor().getName() : "null"));
-
         ResultError res = post.addComment(comment);
-
-        if (res.isSuccess()) {
-            blogPostRepository.save(post);
-            System.out.println("🔍 [BACKEND] Comment saved. Post now has " + post.getComments().size() + " comments");
-        }
 
         return res;
     }

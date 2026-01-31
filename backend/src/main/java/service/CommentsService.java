@@ -66,40 +66,28 @@ public class CommentsService {
 
     @Transactional
     public ResultError deleteComment(int commentId) {
-        System.out.println("🗑️ [BACKEND] Attempting to delete comment ID: " + commentId);
 
         Optional<Comments> commentOpt = commentsRepository.findById(commentId);
         if (commentOpt.isEmpty()) {
-            System.out.println("🗑️ [BACKEND] Comment not found in DB");
             return new ResultError(false, "Comment not found");
         }
 
         Comments comment = commentOpt.get();
-        System.out.println("🗑️ [BACKEND] Found comment: " + comment.getComment());
-        System.out.println("🗑️ [BACKEND] Comment belongs to post ID: " + (comment.getPost() != null ? comment.getPost().getId() : "null"));
 
         try {
-            // ✅ IMPORTANT: Remove comment from post's collection first
             if (comment.getPost() != null) {
                 BlogPost post = comment.getPost();
                 post.getComments().remove(comment);
                 blogPostRepository.save(post);
-                System.out.println("🗑️ [BACKEND] Removed comment from post's collection");
             }
 
-            // Then delete the comment
             commentsRepository.delete(comment);
-            commentsRepository.flush(); // Force immediate DB write
+            commentsRepository.flush();
 
-            System.out.println("🗑️ [BACKEND] Comment deleted from DB");
-
-            // Verify deletion
             boolean stillExists = commentsRepository.existsById(commentId);
-            System.out.println("🗑️ [BACKEND] Comment still exists after delete: " + stillExists);
 
             return new ResultError(true, "Comment deleted successfully");
         } catch (Exception e) {
-            System.out.println("🗑️ [BACKEND] ERROR deleting comment: " + e.getMessage());
             e.printStackTrace();
             return new ResultError(false, "Error deleting comment: " + e.getMessage());
         }

@@ -14,7 +14,6 @@ import {
 import './Profile.css';
 import Confetti from 'react-confetti';
 
-// Funcție pentru salvarea datelor profilului
 const saveProfileData = async (userId, updatedData, token) => {
   const res = await fetch(`/api/users/${userId}`, {
     method: 'PUT',
@@ -29,7 +28,6 @@ const saveProfileData = async (userId, updatedData, token) => {
   return await res.json();
 };
 
-// Funcție pentru salvarea punctelor după spin
 const saveSpinReward = async (userId, pointsToAdd, token) => {
   const res = await fetch(`/api/users/${userId}/addPoints?points=${pointsToAdd}`, {
     method: 'POST',
@@ -200,34 +198,27 @@ function Profile() {
   const { theme } = useContext(ThemeContext);
   const { user, updateUser, loading, token } = useContext(UserContext);
 
-  console.log("USER din context:", user);
-
   useEffect(() => {
     if (user) {
       setFormData(user);
       checkSpinAvailability();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // ✅ Verifică disponibilitatea spin-ului bazat pe lastSpinDate din DB
   const checkSpinAvailability = () => {
     if (!user) return;
 
-    const lastSpinDate = user?.lastSpinDate; // format: "2026-01-13"
+    const lastSpinDate = user?.lastSpinDate;
     
     if (!lastSpinDate) {
-      // Niciodată nu a dat spin
       setCanSpin(true);
       setTimeLeft("");
       return;
     }
 
-    // Convertește string-ul de dată din DB în Date object
     const lastSpin = new Date(lastSpinDate);
     const now = new Date();
     
-    // Resetează orele la 00:00:00 pentru comparație corectă
     lastSpin.setHours(0, 0, 0, 0);
     now.setHours(0, 0, 0, 0);
     
@@ -235,11 +226,9 @@ function Profile() {
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
     
     if (diffInDays >= 1) {
-      // A trecut cel puțin o zi
       setCanSpin(true);
       setTimeLeft("");
     } else {
-      // Mai trebuie să aștepte
       setCanSpin(false);
       const nextSpinDate = new Date(lastSpin);
       nextSpinDate.setDate(nextSpinDate.getDate() + 1);
@@ -290,20 +279,16 @@ function Profile() {
     setFormData(user);
   };
 
-  // ✅ Salvează punctele și data spin-ului în DB
   const handleSpinComplete = async (wonAmount) => {
     try {
-      // ✅ Salvează punctele în DB
       await saveSpinReward(user.id, wonAmount, token);
       
-      // ✅ Actualizează lastSpinDate în DB
-      const today = new Date().toISOString().split('T')[0]; // format: "2026-01-22"
+      const today = new Date().toISOString().split('T')[0];
       await fetch(`/api/users/${user.id}/updateLastSpin?date=${today}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      // ✅ Update local state
       const currentPoints = Number(user?.points ?? 0);
       const newData = { 
         ...user, 
@@ -336,10 +321,8 @@ function Profile() {
   const username = user?.username ?? user?.name ?? "Unknown";
   const photoUrl = user?.photoUrl ?? null;
 
-  // ✅ tokens = points (din DB)
   const tokens = Number(user?.points ?? 0);
 
-  // friends nu există în backend acum -> fallback 0
   const friends = Number(user?.friends ?? 0);
 
   const badges = Array.isArray(user?.badges) ? user.badges : [];

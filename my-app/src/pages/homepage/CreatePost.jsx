@@ -50,8 +50,8 @@ const CreatePost = ({ onCreatePost }) => {
             });
 
             if (response.ok) {
-                const newPost = await response.json(); // Assuming backend returns the created post
-                onCreatePost(newPost); // Call parent handler to add new post to feed
+                const newPost = await response.json();
+                onCreatePost(newPost);
                 setPostTitle('');
                 setPostText('');
             } else {
@@ -96,12 +96,12 @@ const CreatePost = ({ onCreatePost }) => {
                     placeholder="What's on your mind?"
                     className={styles.createPostInput}
                     disabled={isLoading}
-                    rows="3" // Changed to textarea for multi-line input
+                    rows="3"
                 />
 
                 <button
                     onClick={handlePost}
-                    disabled={(!postTitle.trim() && !postText.trim()) || isLoading || !user} // Disable if not logged in
+                    disabled={(!postTitle.trim() && !postText.trim()) || isLoading || !user}
                     className={styles.createPostButton}
                 >
                     {isLoading ? 'Posting...' : 'Post'}

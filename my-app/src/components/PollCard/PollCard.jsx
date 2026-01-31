@@ -140,9 +140,7 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
     const userWon =
         isEnded &&
         winnerId &&
-        poll.userVotedOptionIds?.includes(winnerId); // Adaugă "?" aici
-
-    /* -------- Bet Validation (FIXED) -------- */
+        poll.userVotedOptionIds?.includes(winnerId);
 
     useEffect(() => {
         const amount = Number(betAmount); 
@@ -170,18 +168,14 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
             : setSelectedOptions([optionId]);
     };
 
-    /* -------- Vote (FIXED) -------- */
 
     const handleVoteClick = () => {
         if (selectedOptions.length === 0 || showResults || betError) return;
 
         const amount = Number(betAmount);
 
-        // ✅ Nu mai facem update local - lăsăm backend-ul să gestioneze
-        // ViewPolls va face refresh automat după vot
         onVote(poll.id, selectedOptions[0], amount);
 
-        // --- ADDPOLLBET INTEGRATION ---
         try {
             addPollBet({
                 pollId: poll.id,
@@ -335,7 +329,6 @@ const PollCard = ({ poll, onVote, onEdit, onDelete }) => {
                 {/* Vote Button */}
                 <button
                     className={styles.voteButton}
-                    // Disable if no option selected, results shown, or any betError exists
                     disabled={selectedOptions.length === 0 || showResults || !!betError} 
                     onClick={handleVoteClick}
                 >

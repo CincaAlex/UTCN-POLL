@@ -8,7 +8,6 @@ import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import Modal from '../../components/Modal/Modal';
 import { UserContext } from '../../context/UserContext';
 
-// Utility to format Date objects as relative time
 const formatRelativeTime = (timeString) => {
   try {
     const date = new Date(timeString);
@@ -28,7 +27,6 @@ const formatRelativeTime = (timeString) => {
 
 const DEFAULT_AVATAR = "/default-avatar.png";
 
-// ---- helpers pentru likedBy (acceptă id-uri sau User objects) ----
 const toUserId = (x) => {
   if (x == null) return null;
   if (typeof x === 'number') return x;
@@ -52,7 +50,7 @@ const toUserDisplay = (x) => {
       photoUrl: x.photoUrl ?? null,
     };
   }
-  // id simplu
+
   const id = toUserId(x);
   return { id, name: id != null ? `User ID: ${id}` : 'Unknown user', photoUrl: null };
 };
@@ -60,7 +58,6 @@ const toUserDisplay = (x) => {
 const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleLike }) => {
   const { user, token } = useContext(UserContext);
 
-  // normalize content: acceptă și post.body dacă mai există în date vechi
   const content = useMemo(() => (post?.content ?? post?.body ?? ""), [post?.content, post?.body]);
 
   const id = post?.id;
@@ -87,13 +84,11 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
   const [editedTitle, setEditedTitle] = useState(title);
   const [editedBody, setEditedBody] = useState(content);
 
-  // override local doar când user interacționează
-  const [localComments, setLocalComments] = useState(null); // null => folosim ce vine din post
-  const [localLikedByIds, setLocalLikedByIds] = useState(null); // null => folosim ce vine din post
+  const [localComments, setLocalComments] = useState(null);
+  const [localLikedByIds, setLocalLikedByIds] = useState(null);
 
   const comments = localComments ?? (Array.isArray(post?.comments) ? post.comments : []);
 
-  // likedBy poate fi ids sau user objects -> îl convertim în ids
   const baseLikedBy = Array.isArray(post?.likedBy) ? post.likedBy : [];
   const baseLikedByIds = useMemo(
     () => baseLikedBy.map(toUserId).filter((v) => v != null),
@@ -102,7 +97,6 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
 
   const currentLikedByIds = localLikedByIds ?? baseLikedByIds;
 
-  // user.id poate fi string -> normalizează
   const myUserId = Number(user?.id);
   const hasMyUserId = Number.isFinite(myUserId);
 
@@ -117,17 +111,12 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
   const [copied, setCopied] = useState(false);
   const shareContainerRef = useRef(null);
 
-  // sincronizează doar câmpurile de edit
   useEffect(() => {
     setEditedTitle(prev => (prev === title ? prev : title));
     setEditedBody(prev => (prev === content ? prev : content));
   }, [title, content]);
 
-  // reset override local când se schimbă post-ul (sau când primim update din parent)
   useEffect(() => {
-    console.log('🔄 [POSTCARD] Reset triggered for post ID:', id);
-    console.log('🔄 [POSTCARD] post.likedBy:', post?.likedBy);
-    console.log('🔄 [POSTCARD] baseLikedByIds:', baseLikedByIds);
     setLocalComments(null);
     setLocalLikedByIds(null);
   }, [id, post?.likedBy, baseLikedByIds]);
@@ -146,27 +135,13 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
   const getAvatarSrc = (avatarUrl) => avatarUrl || DEFAULT_AVATAR;
 
   const handleLike = async () => {
-    console.log('🔵 [LIKE] Starting like toggle...');
-    console.log('🔵 [LIKE] Token exists:', !!token);
-    console.log('🔵 [LIKE] Post ID:', id);
-    console.log('🔵 [LIKE] My User ID:', myUserId);
-    console.log('🔵 [LIKE] Has My User ID:', hasMyUserId);
-    
-    if (!token || !id || !hasMyUserId) {
-      console.log('🔴 [LIKE] Missing required data, aborting');
-      return;
-    }
 
     try {
-      console.log('🔵 [LIKE] Sending request to /api/posts/' + id + '/like');
-      
-      // ✅ Optimistic update pentru UI instant
+
       const newLikedByIds = baseLikedByIds.includes(myUserId)
         ? baseLikedByIds.filter(uid => uid !== myUserId)
         : [...baseLikedByIds, myUserId];
       
-      console.log('🟢 [LIKE] Optimistic - Base:', baseLikedByIds);
-      console.log('🟢 [LIKE] Optimistic - New:', newLikedByIds);
       
       setLocalLikedByIds(newLikedByIds);
       
@@ -177,31 +152,25 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
         }
       });
 
-      console.log('🔵 [LIKE] Response status:', response.status);
 
       if (!response.ok) {
-        console.error('🔴 [LIKE] Failed to toggle like, status:', response.status);
+        console.error('[LIKE] Failed to toggle like, status:', response.status);
         const errorText = await response.text();
-        console.error('🔴 [LIKE] Error response:', errorText);
-        // Rollback
+        console.error('[LIKE] Error response:', errorText);
+
         setLocalLikedByIds(baseLikedByIds);
         return;
       }
 
-      // ✅ Backend returnează post-ul complet cu likedBy
       const updatedPost = await response.json();
-      console.log('🟢 [LIKE] Updated post from backend:', updatedPost);
-      console.log('🟢 [LIKE] Updated likedBy from backend:', updatedPost?.likedBy);
 
-      // ✅ Notifică Homepage să actualizeze state-ul global
       if (onToggleLike && updatedPost?.likedBy !== undefined) {
-        console.log('🟢 [LIKE] Calling onToggleLike with likedBy:', updatedPost.likedBy);
         onToggleLike(id, updatedPost.likedBy);
       } else {
-        console.warn('⚠️ [LIKE] onToggleLike NOT called - missing data');
+        console.warn('[LIKE] onToggleLike NOT called - missing data');
       }
     } catch (error) {
-      console.error('🔴 [LIKE] Error toggling like:', error);
+      console.error('[LIKE] Error toggling like:', error);
       // Rollback
       setLocalLikedByIds(baseLikedByIds);
     }
@@ -211,16 +180,10 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
     e.preventDefault();
     if (!user || !token || !id || newComment.trim() === '') return;
 
-    console.log('💬 [COMMENT] Adding comment...');
-    console.log('💬 [COMMENT] Post ID:', id);
-    console.log('💬 [COMMENT] Comment text:', newComment.trim());
-
     try {
       const requestBody = {
         comment: newComment.trim(),
       };
-
-      console.log('💬 [COMMENT] Request body:', JSON.stringify(requestBody, null, 2));
 
       const response = await fetch(`/api/posts/${id}/comments`, {
         method: 'POST',
@@ -231,17 +194,14 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
         body: JSON.stringify(requestBody),
       });
 
-      console.log('💬 [COMMENT] Response status:', response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('💬 [COMMENT] Error response:', errorText);
+        console.error('[COMMENT] Error response:', errorText);
         console.error('Failed to add comment');
         return;
       }
 
       const addedComment = await response.json();
-      console.log('💬 [COMMENT] Added comment from backend:', addedComment);
 
       setLocalComments(prev => {
         const base = prev ?? (Array.isArray(post?.comments) ? post.comments : []);
@@ -299,11 +259,9 @@ const PostCard = ({ post, onUpdatePost, onDeletePost, onDeleteComment, onToggleL
     setTimeout(() => setCopied(false), 1500);
   };
 
-  // likes pentru modal: dacă backend trimite user objects, le afișăm numele; dacă nu, afișăm id-uri
   const likedByForModal = useMemo(() => {
     if (!Array.isArray(post?.likedBy)) return [];
     const list = post.likedBy.map(toUserDisplay).filter(Boolean);
-    // fallback dacă nu avem user objects
     if (list.length === 0) return currentLikedByIds.map(id => ({ id, name: `User ID: ${id}` }));
     return list;
   }, [post?.likedBy, currentLikedByIds]);

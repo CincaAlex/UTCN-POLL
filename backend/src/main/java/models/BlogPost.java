@@ -59,7 +59,6 @@ public class BlogPost {
     public int getLikes() { return likedBy.size(); }
     public boolean isLikedBy(int id) { return likedBy.contains(id); }
 
-    // ✅ IMPORTANT: Expune likedBy în JSON pentru frontend
     public Set<Integer> getLikedBy() { return likedBy; }
 
     public void setAuthor(User author) { this.author = author; }

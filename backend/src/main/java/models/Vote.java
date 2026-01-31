@@ -13,7 +13,6 @@ public class Vote {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    // ✅ JsonIgnore pentru a evita circular reference Poll -> Vote -> Poll
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "poll_id", nullable = false)
     @JsonIgnore
@@ -49,7 +48,6 @@ public class Vote {
         if (!listUsers.contains(userId)) {
             listUsers.add(userId);
             totalBets += betAmount;
-            // Nu mai salvăm bet amount-ul aici - se salvează în UserBet
         }
     }
 

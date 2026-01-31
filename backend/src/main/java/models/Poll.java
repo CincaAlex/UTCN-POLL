@@ -29,11 +29,9 @@ public class Poll {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
-    // ✅ EAGER fetch pentru a încărca opțiunile automat
     @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Vote> options = new ArrayList<>();
 
-    // ✅ EAGER fetch + JsonIgnore pentru a evita circular reference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "creator_id", nullable = false)
     @JsonIgnore
@@ -45,7 +43,6 @@ public class Poll {
     @Column(name = "resolved")
     private boolean resolved = false;
 
-    // Constructors
     public Poll() {
         this.date = LocalDateTime.now();
     }
@@ -91,7 +88,6 @@ public class Poll {
         return this.resolved;
     }
 
-    // Business methods
     public Map<String, Double> calculateResults() {
         Map<String, Double> results = new HashMap<>();
 
@@ -123,7 +119,6 @@ public class Poll {
         this.creator = (Admin) creator;
     }
 
-    // ✅ Expune creatorId în JSON fără să expună întregul obiect Admin
     @JsonProperty("creatorId")
     public int getCreatorId(){
         return this.creator != null ? this.creator.getId() : 0;
@@ -151,7 +146,7 @@ public class Poll {
 
     @JsonProperty("creatorAvatar")
     public String getCreatorAvatar() {
-        return null; // sau this.creator != null ? this.creator.getAvatar() : null;
+        return null;
     }
 
     public Admin getCreator() {

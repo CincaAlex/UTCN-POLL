@@ -25,10 +25,8 @@ const Homepage = () => {
   const hasCaptured = useRef(false);
   const navigate = useNavigate();
 
-  // Fetch posts
   useEffect(() => {
     const fetchPosts = async () => {
-      console.log('📥 [HOMEPAGE] Fetching posts...');
       setPostsLoading(true);
       try {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -36,33 +34,22 @@ const Homepage = () => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('📥 [HOMEPAGE] Fetched posts count:', data?.length);
           
-          if (data && data.length > 0) {
-            console.log('📥 [HOMEPAGE] First post:', data[0]);
-            console.log('📥 [HOMEPAGE] First post author:', data[0]?.author);
-            console.log('📥 [HOMEPAGE] First post likedBy:', data[0]?.likedBy);
-            console.log('📥 [HOMEPAGE] First post comments:', data[0]?.comments);
-          }
-
-          // normalize: dacă backend returnează content, dar unele posturi vechi au body,
-          // păstrăm content ca sursă principală
           const normalized = (Array.isArray(data) ? data : []).map(p => ({
             ...p,
             content: p?.content ?? p?.body ?? '',
           }));
 
           const sortedData = normalized.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-          console.log('📥 [HOMEPAGE] Posts set in state');
           setPosts(sortedData);
         } else {
           const errorText = await response.text();
-          console.error('📥 [HOMEPAGE] Failed to fetch posts', response.status);
-          console.error('📥 [HOMEPAGE] Error response:', errorText);
+          console.error('[HOMEPAGE] Failed to fetch posts', response.status);
+          console.error('[HOMEPAGE] Error response:', errorText);
           setPosts([]);
         }
       } catch (error) {
-        console.error('📥 [HOMEPAGE] Error fetching posts:', error);
+        console.error('[HOMEPAGE] Error fetching posts:', error);
         setPosts([]);
       } finally {
         setPostsLoading(false);
@@ -92,7 +79,6 @@ const Homepage = () => {
     return postSuggestions.slice(0, 5);
   };
 
-  // Scroll to a post if hash exists
   const handleScrollToPost = useCallback(() => {
     const hash = window.location.hash;
     if (hash && hash.startsWith('#post-')) {
@@ -111,7 +97,6 @@ const Homepage = () => {
     }
   }, [user]);
 
-  // Handle initial load with hash for post
   useLayoutEffect(() => {
     if (hasCaptured.current) return;
 
@@ -121,7 +106,6 @@ const Homepage = () => {
       setPendingPostHash(hash);
       window.history.replaceState(null, '', window.location.pathname);
 
-      // doar dacă NU ai user și NU ai token → modal
       if (!user && !userLoading && !token) {
         setIsLoginModalOpen(true);
       } else if (user && !userLoading) {
@@ -130,7 +114,6 @@ const Homepage = () => {
     }
   }, [user, userLoading, token, handleScrollToPost]);
 
-  // Modal handlers
   const handleLoginSuccess = () => {
     setIsLoginModalOpen(false);
     if (pendingPostHash) {
@@ -147,11 +130,9 @@ const Homepage = () => {
     }
   };
 
-  // CRUD handlers
   const handleCreatePost = (newPost) => {
     if (!newPost) return;
 
-    // normalize (content)
     const normalized = {
       ...newPost,
       content: newPost?.content ?? newPost?.body ?? '',
@@ -173,7 +154,6 @@ const Homepage = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        // backend-ul tău primește String raw => trimiți string, nu obiect
         body: JSON.stringify(newContent),
       });
 
@@ -226,19 +206,14 @@ const Homepage = () => {
   };
 
   const handleDeleteComment = async (postId, commentId) => {
-    console.log('🗑️ [HOMEPAGE] Deleting comment...');
-    console.log('🗑️ [HOMEPAGE] Post ID:', postId);
-    console.log('🗑️ [HOMEPAGE] Comment ID:', commentId);
-    console.log('🗑️ [HOMEPAGE] Token exists:', !!token);
     
     if (!token) {
-      console.error('🗑️ [HOMEPAGE] No authentication token found for deleting comment.');
+      console.error('[HOMEPAGE] No authentication token found for deleting comment.');
       return;
     }
 
     if (window.confirm('Are you sure you want to delete this comment?')) {
       try {
-        console.log('🗑️ [HOMEPAGE] Sending DELETE request to /api/comments/' + commentId);
         
         const response = await fetch(`/api/comments/${commentId}`, {
           method: 'DELETE',
@@ -247,18 +222,14 @@ const Homepage = () => {
           },
         });
 
-        console.log('🗑️ [HOMEPAGE] Response status:', response.status);
 
         if (response.ok) {
           const result = await response.json();
-          console.log('🗑️ [HOMEPAGE] Delete response from backend:', result);
-          console.log('🗑️ [HOMEPAGE] Comment deleted successfully, updating local state');
           
           setPosts(prev =>
             prev.map(post => {
               if (post.id === postId) {
                 const updatedComments = (post.comments || []).filter(c => c.id !== commentId);
-                console.log('🗑️ [HOMEPAGE] Updated comments for post', postId, ':', updatedComments);
                 return { ...post, comments: updatedComments };
               }
               return post;
@@ -266,21 +237,16 @@ const Homepage = () => {
           );
         } else {
           const errorText = await response.text();
-          console.error('🗑️ [HOMEPAGE] Failed to delete comment:', response.status, errorText);
+          console.error('[HOMEPAGE] Failed to delete comment:', response.status, errorText);
         }
       } catch (error) {
-        console.error('🗑️ [HOMEPAGE] Error deleting comment:', error);
+        console.error('[HOMEPAGE] Error deleting comment:', error);
       }
     }
   };
 
-  // ✅ Like handler - actualizează state-ul după toggle
   const handleToggleLike = async (postId, updatedLikedBy) => {
-    console.log('🟡 [HOMEPAGE] handleToggleLike called');
-    console.log('🟡 [HOMEPAGE] Post ID:', postId);
-    console.log('🟡 [HOMEPAGE] Updated likedBy:', updatedLikedBy);
     
-    // updatedLikedBy vine de la PostCard după ce face optimistic update
     setPosts(prev => {
       const updated = prev.map(post =>
         post.id === postId
@@ -288,15 +254,12 @@ const Homepage = () => {
           : post
       );
       
-      console.log('🟡 [HOMEPAGE] Posts state updated');
       const updatedPost = updated.find(p => p.id === postId);
-      console.log('🟡 [HOMEPAGE] Updated post likedBy:', updatedPost?.likedBy);
       
       return updated;
     });
   };
 
-  // Sorting & search
   const handleSortChange = (newSortOrder) => setSortOrder(newSortOrder);
   const handleSearchTermChange = (newSearchTerm) => setSearchTerm(newSearchTerm);
 

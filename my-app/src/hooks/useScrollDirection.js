@@ -8,7 +8,6 @@ export function useScrollDirection() {
 
         const updateScrollDirection = () => {
             const scrollY = window.pageYOffset;
-            // add a threshold to avoid triggering on minor scrolls
             const direction = scrollY > lastScrollY ? 'down' : 'up';
             if (direction !== scrollDirection && (scrollY - lastScrollY > 10 || scrollY - lastScrollY < -10)) {
                 setScrollDirection(direction);

@@ -24,7 +24,7 @@ public class MailService {
     }
 
     public int sendVerificationCode(String to) {
-        int code = 100000 + random.nextInt(900000); // cod 6 cifre
+        int code = 100000 + random.nextInt(900000);
         String subject = "Cod de verificare UTCN Poll";
         String text = "Codul tau de verificare este: " + code;
         sendMail(to, subject, text);

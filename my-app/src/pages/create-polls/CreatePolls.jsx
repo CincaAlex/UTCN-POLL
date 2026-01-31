@@ -55,7 +55,6 @@ const CreatePolls = () => {
     const isEditing = editingPollId !== null;
     const [creationFormKey, setCreationFormKey] = useState(0); 
 
-    // ✅ Fetch user's polls from backend
     useEffect(() => {
         const fetchMyPolls = async () => {
             if (!token || !user) {
@@ -63,7 +62,6 @@ const CreatePolls = () => {
                 return;
             }
 
-            console.log('🗳️ [CREATE POLL] Fetching user polls...');
             setLoading(true);
             
             try {
@@ -73,18 +71,16 @@ const CreatePolls = () => {
 
                 if (response.ok) {
                     const allPolls = await response.json();
-                    // Filter to show only current user's polls
                     const userPolls = allPolls.filter(p => 
                         p.creator?.id === user.id || p.creatorId === user.id
                     );
-                    console.log('🗳️ [CREATE POLL] User polls:', userPolls);
                     setMyPolls(userPolls);
                 } else {
-                    console.error('🗳️ [CREATE POLL] Failed to fetch polls');
+                    console.error('[CREATE POLL] Failed to fetch polls');
                     setMyPolls([]);
                 }
             } catch (error) {
-                console.error('🗳️ [CREATE POLL] Error fetching polls:', error);
+                console.error('[CREATE POLL] Error fetching polls:', error);
                 setMyPolls([]);
             } finally {
                 setLoading(false);
@@ -157,14 +153,11 @@ const CreatePolls = () => {
         
         if (!isEditing || !token) return;
         
-        console.log('🗳️ [CREATE POLL] Saving poll edit...');
-        // TODO: Implement edit endpoint in backend
         alert('Edit functionality coming soon!');
         handleCloseModal();
     };
 
     const formatDateForBackend = (date) => {
-        // Convertește data locală în formatul așteptat de backend fără a schimba fusul orar
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -175,13 +168,10 @@ const CreatePolls = () => {
         return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
     };
 
-    // ✅ Submit poll to backend
     const handleSubmit = async (e) => {
         e.preventDefault();
         
         if (isEditing || !token || !user) return;
-
-        console.log('🗳️ [CREATE POLL] Creating new poll...');
 
         const endDate = pollDuration === 'custom' 
             ? customEndDate 
@@ -189,7 +179,7 @@ const CreatePolls = () => {
 
         const newPoll = {
             title: question,
-            description: '', // Optional description field
+            description: '',
             endDate: formatDateForBackend(endDate),
             options: options
                 .filter(opt => opt.trim() !== '')
@@ -199,7 +189,6 @@ const CreatePolls = () => {
                 }))
         };
 
-        console.log('🗳️ [CREATE POLL] Poll data:', newPoll);
 
         try {
             const response = await fetch('/api/polls', {
@@ -213,18 +202,17 @@ const CreatePolls = () => {
 
             if (response.ok) {
                 const createdPoll = await response.json();
-                console.log('🗳️ [CREATE POLL] Poll created:', createdPoll);
                 
                 setMyPolls([createdPoll, ...myPolls]);
                 handleResetForm();
                 alert('Poll created successfully!');
             } else {
                 const error = await response.json();
-                console.error('🗳️ [CREATE POLL] Failed to create poll:', error);
+                console.error('[CREATE POLL] Failed to create poll:', error);
                 alert(error.message || 'Failed to create poll');
             }
         } catch (error) {
-            console.error('🗳️ [CREATE POLL] Error creating poll:', error);
+            console.error('[CREATE POLL] Error creating poll:', error);
             alert('Error creating poll');
         }
     };
@@ -239,7 +227,6 @@ const CreatePolls = () => {
         if (!token) return;
 
         if (window.confirm("Delete this poll?")) {
-            console.log('🗳️ [CREATE POLL] Deleting poll:', pollId);
 
             try {
                 const response = await fetch(`/api/polls/${pollId}`, {
@@ -248,15 +235,13 @@ const CreatePolls = () => {
                 });
 
                 if (response.ok) {
-                    console.log('🗳️ [CREATE POLL] Poll deleted');
                     setMyPolls(currentPolls => currentPolls.filter(p => p.id !== pollId));
                 } else {
                     const error = await response.json();
-                    console.error('🗳️ [CREATE POLL] Delete failed:', error);
                     alert(error.message || 'Failed to delete poll');
                 }
             } catch (error) {
-                console.error('🗳️ [CREATE POLL] Error deleting poll:', error);
+                console.error('[CREATE POLL] Error deleting poll:', error);
                 alert('Error deleting poll');
             }
         }

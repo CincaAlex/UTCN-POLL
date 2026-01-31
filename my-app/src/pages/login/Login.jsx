@@ -58,14 +58,12 @@ function Login() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        const token = data.message; // tokenul e în "message" la tine
+        const token = data.message;
 
-        // ✅ VARIANTA 1: nu mai facem fetch la /api/users/...
-        // setăm un user minim în context (email) + token
         const minimalUser = {
           email: formData.email,
-          name: formData.email,      // fallback ca să nu crape UI-ul pe user.name
-          userType: 'USER',          // fallback
+          name: formData.email,
+          userType: 'USER',
         };
 
       await login(minimalUser, token);
